@@ -43,10 +43,10 @@ class nasiconSite(PeriodicSite):
         
         super().__init__(site.species, site.frac_coords, site.lattice)
         self.basestructure = Structure.from_file(nasiconSite.Basestructuredir)
-        self.neighbor = self.findneigbors()
-        self.isbsite = self.classifysite()
+        self.neighbor = self.find_neigbors()
+        self.isbsite = self.classify_site()
 
-    def findneigbors(self):
+    def find_neigbors(self) -> list:
 
         neighborlist = []
         if self.specie.name == "Na":
@@ -58,11 +58,11 @@ class nasiconSite(PeriodicSite):
 
         return neighborlist
 
-    def getneighbors(self):
+    def get_neighbors(self) -> list:
 
         return self.neighbor
 
-    def classifysite(self):
+    def classify_site(self):
         
         if self.specie.name != "Na":
             return None
@@ -75,6 +75,61 @@ class nasiconSite(PeriodicSite):
 
         else:
             warnings.warn("Site is not classifies well - check data", DeprecationWarning)
+            
+class nasiconStructure(Structure):
+    '''
+    Inherite pymatgen.core.structure.Structure class.
+    classfy cations in structures to 6b, 18e sites. 
+    Each site is nasiconSite object.
+    * test classification
+    '''
+    Basestructuredir = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
+    
+    def __init__(self, structure):
+        
+        super().__init__(structure.lattice, structure.species, structure.frac_coords,
+                         structure.charge, False, False, False, None)
+        
+        self.bsite = []
+        self.esite = []
+        self.vsite = []
+        self.basestructure = Structure.from_file(nasiconSite.Basestructuredir)
+        self.update_sites(structure)
+        self.classify_sites()
+        
+    def update_sites(self, structure):
+        
+        a_ratio = int(structure.lattice.a / self.basestructure.lattice.a)
+        b_ratio = int(structure.lattice.b / self.basestructure.lattice.b)
+        c_ratio = int(structure.lattice.c / self.basestructure.lattice.c)
+
+        self.basestructure.make_supercell([a_ratio, b_ratio, c_ratio])
+        
+        # Need to update supercell case for nasiconSite class
+        for i, j in enumerate(self.basestructure):
+            nasiconinfo = nasiconSite(j)
+            self.basestructure[i] = nasiconinfo
+        
+        # Updating PerodicSite objects to nasiconSite objects.
+        for i, site in enumerate(structure):
+            for j, base_site in enumerate(self.basestructure):
+                if np.allclose(site.frac_coords, base_site.frac_coords):
+                    self[i] = self.basestructure[j]
+        
+    def classify_sites(self):
+        
+        # Updating bsite, esite information.
+        for i, j in enumerate(self):
+            if j.isbsite:
+                self.bsite.append(i)
+            elif j.isbsite == None and j.specie.name == 'V':
+                self.vsite.append(i)
+            elif j.isbsite == None:
+                pass
+            elif not j.isbsite:
+                self.esite.append(i)
+            else:
+                warnings.warn("Not well classified sites", DeprecationWarning)
 
 
 class poscarGen(object):
@@ -87,33 +142,13 @@ class poscarGen(object):
     Basestructuredir = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
     poscar_dir = os.path.join(os.getcwd())
 
-    def __init__(self, calc_dir):
+    def __init__(self, calc_dir = "/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test"):
         
         self.basestructure = Structure.from_file(poscarGen.Basestructuredir)
+        self.decoratedstructure = nasiconStructure(self.basestructure)
         self.calc_dir = calc_dir
-        self.bsite = []
-        self.esite = []
-        self.vsite = []
-        
-        # Updating PerodicSite objects to nasiconSite objects.
-        for i, j in enumerate(self.basestructure):
-            nasiconinfo = nasiconSite(j)
-            self.basestructure[i] = nasiconinfo
-            
-        # Updating bsite, esite information.
-        for i, j in enumerate(self.basestructure):
-            if j.isbsite:
-                self.bsite.append(i)
-            elif j.isbsite == None and j.specie.name == 'V':
-                self.vsite.append(i)
-            elif j.isbsite == None:
-                pass
-            elif not j.isbsite:
-                self.esite.append(i)
-            else:
-                warnings.warn("Not well classified sites", DeprecationWarning)
-                
-    def cationOcc_optionfirst(self, x, y):
+
+    def get_disordered_structure(self, x, y) -> Structure:
         '''
         Count number of Ca and Na first.
         If Ca + Na > bsite, put Ca first in bsite, then put remainings to esite
@@ -134,7 +169,7 @@ class poscarGen(object):
         else:
             warnings.warn("This exceed oxidation state limit of V", DeprecationWarning)
 
-        for i in self.vsite:
+        for i in self.decoratedstructure.vsite:
             structure.replace(i, v_site_occs)
 
         if x + y < 1:
@@ -148,9 +183,9 @@ class poscarGen(object):
                 b_site_occs = {'Ca' : 1}
                 e_site_occs = {'Ca' : (x - 1) / 3, 'Na' : y / 3}
 
-        for i in self.bsite:
+        for i in self.decoratedstructure.bsite:
             structure.replace(i, b_site_occs)
-        for j in self.esite:
+        for j in self.decoratedstructure.esite:
             structure.replace(j, e_site_occs)
 
         sites2remove = []
@@ -161,55 +196,66 @@ class poscarGen(object):
         structure.remove_sites(sites2remove)
 
         return structure
+    
+    def get_ordered_structure(self, x, y) -> list:
+        
+        # Set oxidation States for atoms.
+        ox_states = {'Ca' : 2,
+                     'Na' : 1,
+                     'P' : 5,
+                     'Ni' : 3,
+                     'Mn' : 4,
+                     'Cr' : 5,
+                     'O' : -2}
+        
+        s = self.get_disordered_structure(x, y)
+        print("Oxidation State Decorating...")
+        osdt = OxidationStateDecorationTransformation(ox_states)
+        s = osdt.apply_transformation(s)
 
-    def getOrderedStructures(self):
+        try:
+            print("Transforming to Ordered structures...")
+            odst = OrderDisorderedStructureTransformation(0, False, False)
+            s_list = odst.apply_transformation(s, 5)
+        except IndexError:
+            # Not a disordered structure, Only one option
+            print("Warning - Check structure before you proceed.")
+            return [[s]]
+        except ValueError:
+            print('Warning - empty structure, Handle manually')
+            print(x, y)
 
+        print("Structure Matching...")
+        matcher = StructureMatcher()
+        groups = matcher.group_structures([d['structure'] for d in s_list])
+        
+        return groups
+
+    def run(self) -> None:
+        
+        # Generate calculation directory.
         if not os.path.exists(self.calc_dir):
             os.mkdir(self.calc_dir)
 
-        count = 0
+        count_folder = 0
+        count_structure = 0
 
-        for y in np.arange(0, 3.01, 1/3):
-            for x in np.arange(0, 1.51-y/2, 1/6):
+        for y in np.arange(0, 3.01, 1 / 3):
+            for x in np.arange(0, 1.51 - y / 2, 1 / 6):
 
-                count += 1
+                count_folder += 1
                 
-                if count > 32:
+                if count_folder > 200:
                     continue
                 else:
-        
                     # Generate folders
                     foo = self.calc_dir + '/' + str(np.round(x,3)) + '_' + str(np.round(y,3))
                     if not os.path.exists(foo):
                         os.mkdir(foo)
-                    print(str(count) + '    ' + foo)
-        
-                    # Set oxidation States for atoms
-                    ox_states = {'Ca' : 2,
-                                 'Na' : 1,
-                                 'P' : 5,
-                                 'Ni' : 3,
-                                 'Mn' : 4,
-                                 'Cr' : 5,
-                                 'O' : -2}
-
-                    s = self.cationOcc_optionfirst(x, y)
-                    osdt = OxidationStateDecorationTransformation(ox_states)
-                    s = osdt.apply_transformation(s)
-                    #print(s.composition.as_dict().keys())
-        
-                    try:
-                        odst = OrderDisorderedStructureTransformation(0, False, False)
-                        s_list = odst.apply_transformation(s, 50)
-                    except IndexError:
-                        print('Only one option, pass - Handle manually')
-                        continue
-                    except ValueError:
-                        print('empty structure - Handle manually')
-                        continue
-        
-                    matcher = StructureMatcher()
-                    groups = matcher.group_structures([d['structure'] for d in s_list])
+                    print("")
+                    print(str(count_folder) + ': ' + foo)
+                    
+                    groups = self.get_ordered_structure(x, y)
         
                     for i in range(len(groups)):
                         if i == 5:
@@ -227,14 +273,27 @@ class poscarGen(object):
                                 groups[i][0].replace_species({'Cr5+' : 'V5+'})
                             #print(groups[i][0].composition.as_dict().keys())
                             groups[i][0].to(fmt='poscar', filename=dpos)
+                            count_structure += 1
+                            
+        print("total {} folders, {} structures are generated.".format(count_folder, count_structure))
 
         return
     
-    def makeHEstste(self):
+    def makeHEstste(self) -> Structure:
+        '''
+        Start from ground structure calculated in get_ordered_structure,
+        Force move one Ca or one Na from 6b site to random 18e site.
+        '''
+        test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc/0.167_2.0/0/POSCAR"
+        test_structure = Structure.from_file(test_poscar)
 
         return
 
 class inputGen():
+    
+    '''
+    INCAR, KPOINTS, POTCAR, job script generator for VASP run.
+    '''
 
     def __init__(self):
 
