@@ -6,27 +6,21 @@ Created on 05/03/2022
 @author: yun
 """
 # General import
-from glob import glob
-from copy import deepcopy
-from subprocess import call
 import os
 import random
 import warnings
 import numpy as np
+from glob import glob
+from copy import deepcopy
+from subprocess import call
 
 # Pymatgen import
-from pymatgen.symmetry.analyzer import SpacegroupOperations
 from pymatgen.core.structure import Structure
 from pymatgen.core.sites import PeriodicSite
-from pymatgen.io.vasp.inputs import Poscar, Kpoints, Incar, Potcar
-from pymatgen.analysis.local_env import MinimumDistanceNN
-from pymatgen.core.composition import Composition
-from pymatgen.io.vasp import Vasprun
+from pymatgen.io.vasp.inputs import Kpoints
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.transformations.standard_transformations import (
-    OrderDisorderedStructureTransformation, RemoveSpeciesTransformation,
-    PartialRemoveSpecieTransformation, OxidationStateDecorationTransformation,
-    SubstitutionTransformation)
+    OrderDisorderedStructureTransformation, OxidationStateDecorationTransformation)
 
 # Compmatscipy import https://github.com/CJBartel/compmatscipy
 from compmatscipy.CompAnalyzer import CompAnalyzer
@@ -36,11 +30,11 @@ from compmatscipy.HelpWithVASP import VASPSetUp, VASPBasicAnalysis, JobSubmissio
 __basestructure__ = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
 
 
-class nasiconSite(PeriodicSite):
-    '''
+class NasiconSite(PeriodicSite):
+    """
     Inherit Pymatgen.core.sites.PeriodicSite class.
     Adding neighbor, site information in base NASICON lattice.
-    '''
+    """
 
     # Basestructuredir = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
 
@@ -79,14 +73,14 @@ class nasiconSite(PeriodicSite):
             warnings.warn("Site is not classifies well - check data", DeprecationWarning)
 
 
-class nasiconStructure(Structure):
-    '''
+class NasiconStructure(Structure):
+    """
     Inherite pymatgen.core.structure.Structure class.
     classfy cations in structures to 6b, 18e sites.
-    Each site is nasiconSite object.
+    Each site is NasiconSite object.
     * test classification
     * Need to clean siteinfo. There'll be cleaner way.
-    '''
+    """
 
     def __init__(self, structure):
 
@@ -108,16 +102,16 @@ class nasiconStructure(Structure):
 
         self.basestructure.make_supercell([a_ratio, b_ratio, c_ratio])
 
-        # Need to update supercell case for nasiconSite class
+        # Need to update supercell case for NasiconSite class
         for i, j in enumerate(self.basestructure):
-            nasiconinfo = nasiconSite(j)
+            nasiconinfo = NasiconSite(j)
             self.basestructure[i] = nasiconinfo
 
-        # Updating PerodicSite objects to nasiconSite objects.
+        # Updating PerodicSite objects to NasiconSite objects.
         for i, site in enumerate(structure):
             for j, base_site in enumerate(self.basestructure):
                 if np.allclose(site.frac_coords, base_site.frac_coords):
-                    self[i] = nasiconSite(self[i])
+                    self[i] = NasiconSite(self[i])
                     if base_site.isbsite:
                         if site.specie.name == 'Ca':
                             self.siteinfo['b']['Ca'][i] = (j, base_site.frac_coords)
@@ -142,13 +136,13 @@ class nasiconStructure(Structure):
                         warnings.warn("Not well classified sites", DeprecationWarning)
 
 
-class poscarGen(object):
-    '''
+class PoscarGen(object):
+    """
     POSCAR generator including Ground / HE State based on Ewald energy.
     SAVE_DIR?
     Should make structure info file (json) at the end of directory.
     Include b site information, neighbors.
-    '''
+    """
 
     # Set oxidation States for atoms.
     ox_states = {'Ca': 2, 'Na': 1, 'P': 5, 'Ni': 3, 'Mn': 4, 'Cr': 5, 'O': -2}
@@ -156,7 +150,7 @@ class poscarGen(object):
     def __init__(self, calc_dir="/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test"):
 
         self.basestructure = Structure.from_file(__basestructure__)
-        self.decoratedstructure = nasiconStructure(self.basestructure)
+        self.decoratedstructure = NasiconStructure(self.basestructure)
         self.calc_dir = calc_dir
 
     def get_disordered_structure(self, x, y) -> Structure:
@@ -215,7 +209,7 @@ class poscarGen(object):
 
         s = self.get_disordered_structure(x, y)
         print("Oxidation State Decorating...")
-        osdt = OxidationStateDecorationTransformation(poscarGen.ox_states)
+        osdt = OxidationStateDecorationTransformation(PoscarGen.ox_states)
         s = osdt.apply_transformation(s)
 
         try:
@@ -288,14 +282,14 @@ class poscarGen(object):
 
         return
 
-    def makeHEstatehelper(self, x, y, poscar, b_sites_in_poscar, e_candidates, option):
-        '''
+    def makeHEstatehelper(self, x, y, z, poscar, b_sites_in_poscar, e_candidates, option):
+        """
         :param poscar: target structure want to change.
         :param b_sites_in_poscar: b sites in the target structure.
         :param e_candidates: available e sites in the base structure.
         :param option: cations. "Ca" or "Na"
         :return:
-        '''
+        """
 
         if len(b_sites_in_poscar[option]) > 0:
             new_poscar = deepcopy(poscar)
@@ -312,7 +306,7 @@ class poscarGen(object):
             # Saving
             dir_name = os.path.join(self.calc_dir,
                                     str(np.round(x, 3)) + '_' + str(np.round(y, 3)),
-                                    option + '_HE')
+                                    str(z) + '_' + option + '_HE')
             if not os.path.exists(dir_name):
                 os.mkdir(dir_name)
             new_poscar_name = os.path.join(dir_name, 'POSCAR')
@@ -325,7 +319,7 @@ class poscarGen(object):
             print("In {},{}, No {} in the structure".format(x, y, option))
 
     def makeHEstate(self, x, y, z, option="Ca") -> None:
-        '''
+        """
         Start from ground structure calculated in get_ordered_structure,
         Force move one Ca or one Na from 6b site to random 18e site.
         Need all bsite e site information.
@@ -334,11 +328,11 @@ class poscarGen(object):
         y: Na concentration (float),
         z: nth order of Ewald energy (int).
         option: Str, 'Ca' or 'Na' to move to 18e from 6b site.
-        '''
+        """
 
         poscar_dir = os.path.join(self.calc_dir, str(np.round(x, 3)) + '_' + str(np.round(y, 3)),
                                   str(z), 'POSCAR')
-        poscar = nasiconStructure(Structure.from_file(poscar_dir))
+        poscar = NasiconStructure(Structure.from_file(poscar_dir))
 
         # Save e site info in base structure. In base basis.
         e_sites_in_base = list(self.decoratedstructure.siteinfo['e']['Ca'].keys()) \
@@ -367,28 +361,249 @@ class poscarGen(object):
 
         # Move Ca to esite
         if option == "Ca" or option == "Na":
-            self.makeHEstatehelper(x, y, poscar, b_sites_in_poscar, e_candidates, option)
+            self.makeHEstatehelper(x, y, z, poscar, b_sites_in_poscar, e_candidates, option)
         else:
             warnings.warn("{} is not supported".format(option), DeprecationWarning)
 
         return
 
     def HEstaterun(self):
-        '''
-        Generate HE states from structures from poscarGen.run
-        '''
-        # test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc/0.167_2.0/0/POSCAR"
-        # test_structure = Structure.from_file(test_poscar)
+        """
+        Generate HE states from structures from PoscarGen.run
+        """
+        spec_list = glob(self.calc_dir + "/*/")
+        for i in spec_list:
+            detailed_spec_list = glob(i + "*/")
+            for j in detailed_spec_list:
+                poscar_dir = os.path.join(j, "POSCAR")
+                x = float(poscar_dir.split('/')[-3].split('_')[0])
+                y = float(poscar_dir.split('/')[-3].split('_')[1])
+                z = poscar_dir.split('/')[-2]
+                # noinspection PyTypeChecker
+                if not ("Ca_HE" in z or "Na_HE" in z):
+                    z = int(z)
+                    self.makeHEstate(x, y, z, "Ca")
+                    self.makeHEstate(x, y, z, "Na")
+
         return
 
 
-class inputGen():
-    '''
+class InputGen():
+    """
     INCAR, KPOINTS, POTCAR, job script generator for VASP run.
-    '''
+    """
 
-    def __init__(self):
+    def __init__(self, machine, hpc, calc_dir, convergence_option):
+        """
+        :param machine: Machine that build files. YUN, cori, savio, stampede, bridges2, ginar.
+        :param hpc: Machine that actually run calculations. cori, savio, stampede, bridges2 ginar.
+        :param calc_dir: Directory that contains POSCAR file.
+        test_calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test/0.5_1.0'
+        test_poscar = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test/0.5_1.0/0/POSCAR'
+        test_structure = Structure.from_file(test_poscar)
+
+        Need to add option fast / full option.
+        Need to remove dependencies.
+        Need to write consecutive run from fast to full.
+        """
+        self.machine = machine
+        self.hpc = hpc
+        self.calc_dir = calc_dir
+        self.convergence_option = convergence_option
+
         return
+
+    def get_U(self):
+
+        U_els = {'Co': 3.32, 'Cr': 3.7, 'Fe': 5.3, 'Mn': 3.9,
+                 'Mo': 4.38, 'Ni': 6.2, 'V': 3.25, 'W': 6.2}
+        els = VASPSetUp(self.calc_dir).ordered_els_from_poscar()
+        U = {el: {'L': 2 if el in U_els.keys() else 0,
+                  'U': U_els[el] if el in U_els.keys() else 0} for el in els}
+        for el in U:
+            if U[el]['U'] != 0:
+                return U
+
+        return False
+
+    def get_incar(self, ISIF=3, U=True) -> None:
+        """
+        :param ISIF: 3 for structural optimization, 2 for NEB
+        :param U: +U if U is true.
+        :return: Write INCAR in self.calc_dir directory.
+        """
+        vsu = VASPSetUp(self.calc_dir)
+
+        if self.convergence_option == 'full':
+            additional = {'EDIFFG': -1e-2,
+                          'EDIFF': 1e-5,
+                          'NPAR': 16,
+                          'NSW': 600,
+                          'IBRION': 2}
+        elif self.convergence_option == 'fast':
+            additional = {'EDIFFG': -0.05,
+                          'EDIFF': 1e-4,
+                          'NPAR': 16,
+                          'NSW': 300,
+                          'IBRION': 2,
+                          'ENCUT': 400}
+        else:
+            additional = {}
+            warnings.warn("Check convergence option", DeprecationWarning)
+
+        if ISIF == 3:
+            additional['ISIF'] = ISIF
+        elif ISIF == 2:
+            additional['ISIF'] = ISIF
+            additional['ICHARG'] = 0
+            additional['ISTART'] = 1
+        else:
+            warnings.warn("Check ISIF option", DeprecationWarning)
+
+        if U:
+            ordered_els = vsu.ordered_els_from_poscar()
+            U_data = self.get_U()
+            additional['LDAU'] = 'TRUE'
+            additional['LDAUTYPE'] = 2
+            additional['LDAUPRINT'] = 1
+            additional['LDAUJ'] = ' '.join([str(0) for v in ordered_els])
+            additional['LDAUL'] = ' '.join([str(U_data[el]['L']) for el in U_data])
+            additional['LDAUU'] = ' '.join([str(U_data[el]['U']) for el in U_data])
+
+        additional['ISYM'] = 0
+        additional['ISMEAR'] = 0
+        additional['AMIX'] = 0.1
+        additional['BMIX'] = 0.01
+
+        vsu.incar(is_geometry_opt=True, mag='fm', additional=additional)
+
+    def get_kpoints(self) -> None:
+
+        fkpoints = os.path.join(self.calc_dir, 'KPOINTS')
+        s = Structure.from_file(os.path.join(self.calc_dir, 'POSCAR'))
+        if self.convergence_option == 'full':
+            Kpoints().automatic_density(s, kppa=1000).write_file(fkpoints)
+        else:
+            Kpoints().gamma_automatic().write_file(fkpoints)
+
+    def get_potcar(self) -> None:
+
+        obj = VASPSetUp(self.calc_dir)
+        obj.potcar(machine=self.machine, MP=True)
+
+    @property
+    def get_jobname(self) -> str:
+
+        a = self.calc_dir.split('/')
+
+        return '-'.join(a[-3:-1])
+
+    def write_sub(self):
+
+        nodes = 4
+        ntasks = 256
+        walltime = '12:00:00'
+        err_file = 'log.e'
+        out_file = 'log.o'
+        options = {'error': err_file,
+                   'out': out_file,
+                   'time': walltime,
+                   'nodes': nodes,
+                   'ntasks': ntasks,
+                   'job-name': self.get_jobname}
+
+        if self.hpc == 'stampede':
+
+            account = 'TG-DMR970008S'
+            partition = 'normal'
+            options['account'] = account
+            options['partition'] = partition
+            launch_line = '    ibrun -n {} /home1/06991/tg862905/bin/' \
+                          'vasp.5.4.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(
+                ntasks)
+
+        elif self.hpc == 'bridges2':
+
+            account = 'dmr060032p'
+            partition = 'RM'
+            del options['ntasks']
+            options['account'] = account
+            options['partition'] = partition
+            options['ntasks-per-node'] = 128
+            launch_line = 'module load intelmpi/20.4-intel20.4\n    mpirun -n {} ' \
+                          '/jet/home/yychoi/bin/Bridges2/vasp_gam > vasp.out\n'.format(
+                nodes * 128)
+
+        elif self.hpc == 'savio':
+
+            account = 'co_condoceder'
+            qos = 'savio_lowprio'
+            partition = 'savio3'
+            ntasks = nodes * 32
+            options['account'] = account
+            options['partition'] = partition
+            options['qos'] = qos
+            options['ntasks'] = ntasks
+            launch_line = 'mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4' \
+                          '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(
+                ntasks)
+
+        elif self.hpc == 'cori':
+
+            account = 'm1268'
+            constraint = 'knl'
+            qos = 'regular'
+            options['account'] = account
+            options['constraint'] = constraint
+            options['qos'] = qos
+            launch_line = 'srun -n {} /global/homes/y/yychoi/bin/VASP_20190930/KNL/vasp.5.4' \
+                          '.4_vtst178_with_DnoAugXCMeta/vasp_std_knl > vasp.out\n'.format(
+                ntasks)
+
+        else:
+            launch_line = ''
+            warnings.warn("Check hps option", DeprecationWarning)
+
+        fsub = os.path.join(self.calc_dir, 'job.sh')
+
+        line1 = '#!/bin/bash\n'
+        with open(fsub, 'w') as f:
+            f.write(line1)
+            for tag in options:
+                option = options[tag]
+                if option:
+                    option = str(option)
+                    f.write('%s --%s=%s\n' % ('#SBATCH', tag, option))
+            f.write('\n')
+
+            line = 'mkdir U; cd U;\n'
+            f.write(line)
+            line = "IsConv=`grep 'required accuracy' OUTCAR`;\n"
+            f.write(line)
+            line = 'if [ -z "${IsConv}" ]; then\n'
+            f.write(line)
+            line = '    if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
+            f.write(line)
+            line = '    if [ ! -s "POSCAR" ]; then\n'
+            f.write(line)
+            line = '        cp ../{KPOINTS,POTCAR,POSCAR} .;\n'
+            f.write(line)
+            line = '    fi\n'
+            f.write(line)
+            line = '        cp ../INCAR .;\n'
+            f.write(line)
+            f.write(launch_line)
+            line = 'fi'
+            f.write(line)
+            f.close()
+
+    def setup(self):
+
+        return
+
+
+def run_total():
+    return
 
 
 def main():
@@ -396,6 +611,7 @@ def main():
 
 
 def changelatticevector():
+    # Will be deleted.
     from pymatgen.core.lattice import Lattice
 
     test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc/0.167_2.0/0/POSCAR"
