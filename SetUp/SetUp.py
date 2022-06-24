@@ -426,7 +426,7 @@ class InputGen():
 
         return False
 
-    def get_incar(self, ISIF=3, U=True) -> None:
+    def get_incar(self, ISIF = 3, U = True) -> None:
         """
         :param ISIF: 3 for structural optimization, 2 for NEB
         :param U: +U if U is true.
@@ -498,7 +498,7 @@ class InputGen():
 
         return '-'.join(a[-3:-1])
 
-    def write_sub(self):
+    def get_sub(self):
 
         nodes = 4
         ntasks = 256
@@ -597,16 +597,31 @@ class InputGen():
             f.write(line)
             f.close()
 
-    def setup(self):
+    def at_once(self):
+
+        self.get_incar()
+        self.get_kpoints()
+        self.get_potcar()
+        self.get_sub()
 
         return
 
 
-def run_total():
-    return
-
-
 def main():
+
+    poscarrun = PoscarGen()
+    # Get ground state POSCAR.
+    poscarrun.run()
+
+    # Get HE state POSCAR.
+    poscarrun.HEstaterun()
+
+    # Get setup files for generated folder.
+    inputgenerator = InputGen('savio', 'savio', '/global/scratch/users/yychoi94/CaNaVP_DFT',
+                              'fast')
+
+    # Get runfile for this python script.
+
     return
 
 
@@ -628,4 +643,5 @@ def changelatticevector():
 
 
 if __name__ == '__main__':
+
     main()
