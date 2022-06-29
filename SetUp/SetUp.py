@@ -9,6 +9,7 @@ Created on 05/03/2022
 import os
 import random
 import warnings
+import argparse
 import numpy as np
 from glob import glob
 from copy import deepcopy
@@ -607,7 +608,7 @@ class InputGen():
         return
 
 
-def main():
+def main(machine, hpc, option) -> None:
 
     poscarrun = PoscarGen()
     # Get ground state POSCAR.
@@ -616,11 +617,43 @@ def main():
     # Get HE state POSCAR.
     poscarrun.HEstaterun()
 
-    # Get setup files for generated folder.
-    inputgenerator = InputGen('savio', 'savio', '/global/scratch/users/yychoi94/CaNaVP_DFT',
-                              'fast')
+    calc_dir = ''
+    if machine == 'savio':
+        calc_dir = '/global/scratch/users/yychoi94/CaNaVP_DFT'
+    elif machine == 'cori':
+        calc_dir = '/global/cscratch1/sd/yychoi'
+    elif machine == 'stampede':
+        calc_dir = '/scratch/06991/tg862905'
+    elif machine == 'YUN':
+        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc'
+    elif machine == 'bridges2':
+        calc_dir = '/ocean/projects/dmr060032p/yychoi'
+    else:
+        warnings.warn("Check machine option", DeprecationWarning)
 
-    # Get runfile for this python script.
+    if not os.path.exists(calc_dir):
+        warnings.warn("Running in the wrong machine", DeprecationWarning)
+
+    if not hpc in ['savio', 'cori', 'stampede', 'bridges2']:
+        warnings.warn("Check hpc option", DeprecationWarning)
+
+    # Get setup files for generated folder.
+    inputgenerator = InputGen(machine, hpc, calc_dir, option)
+
+    spec_list = glob(calc_dir + "/*/")
+    for i in spec_list:
+        detailed_spec_list = glob(i + "*/")
+        for j in detailed_spec_list:
+            poscar_dir = os.path.join(j, "POSCAR")
+            x = float(poscar_dir.split('/')[-3].split('_')[0])
+            y = float(poscar_dir.split('/')[-3].split('_')[1])
+            z = poscar_dir.split('/')[-2]
+
+
+
+    return
+
+def launchjobs() -> None:
 
     return
 
@@ -644,4 +677,15 @@ def changelatticevector():
 
 if __name__ == '__main__':
 
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', type=str, required=True, default='YUN',
+                        help="Machine that want to run this python file. Yun, cori, stampede, "
+                             "bridges2, savio are available.")
+    parser.add_argument('-p', type=str, required=True, default='savio',
+                        help="HPC that want to run DFT calculation. cori, stampede, "
+                             "bridges2, savio are available.")
+    parser.add_argument('-o', type=str, required=True, default='fast',
+                        help="Option for DFT calculation. fast or full.")
+    args = parser.parse_args()
+
+    main(args.m, args.p, args.o)
