@@ -121,9 +121,9 @@ class NasiconStructure(Structure):
                         else:
                             warnings.warn("None-cation element placed in 6b site",
                                           DeprecationWarning)
-                    elif base_site.isbsite == None and base_site.specie.name == 'V':
+                    elif base_site.isbsite is None and base_site.specie.name == 'V':
                         self.siteinfo['v'][i] = (j, base_site.frac_coords)
-                    elif base_site.isbsite == None:
+                    elif base_site.isbsite is None:
                         pass
                     elif not base_site.isbsite:
                         if site.specie.name == 'Ca':
@@ -155,26 +155,26 @@ class PoscarGen(object):
         self.calc_dir = calc_dir
 
     def get_disordered_structure(self, x, y) -> Structure:
-        '''
+        """
         Count number of Ca and Na first.
         If Ca + Na > bsite, put Ca first in bsite, then put remainings to esite
         Else put all cations to bsite.
         Here, do not consider Na3 concentration which Na occupation is same in b, e site.
-        '''
+        """
         structure = deepcopy(self.basestructure)
-        V_state = 9 / 2 - x - y / 2
+        v_state = 9 / 2 - x - y / 2
 
-        if 3 < V_state < 4:
-            v_site_occs = {'Mn': V_state - 3, 'Ni': 4 - V_state}
-        elif 4 < V_state < 5:
-            v_site_occs = {'Cr': V_state - 4, 'Mn': 5 - V_state}
-        elif V_state == 4:
+        if 3 < v_state < 4:
+            v_site_occs = {'Mn': v_state - 3, 'Ni': 4 - v_state}
+        elif 4 < v_state < 5:
+            v_site_occs = {'Cr': v_state - 4, 'Mn': 5 - v_state}
+        elif v_state == 4:
             v_site_occs = {'Mn': 1}
-        elif V_state == 3:
+        elif v_state == 3:
             v_site_occs = {'Ni': 1}
         else:
             warnings.warn("This exceed oxidation state limit of V", DeprecationWarning)
-            v_site_occs = {'V': V_state}
+            v_site_occs = {'V': v_state}
 
         for i in self.decoratedstructure.siteinfo['v'].keys():
             structure.replace(i, v_site_occs)
@@ -358,7 +358,7 @@ class PoscarGen(object):
 
         # Get availalbe e sites in the base structure.
         for i in e_sites_in_base:
-            if not i in e_sites_in_poscar_base_basis:
+            if i not in e_sites_in_poscar_base_basis:
                 e_candidates.append(i)
 
         # Move Ca to esite
@@ -392,7 +392,7 @@ class PoscarGen(object):
         return
 
 
-class InputGen():
+class InputGen:
     """
     INCAR, KPOINTS, POTCAR, job script generator for VASP run.
     """
@@ -430,7 +430,7 @@ class InputGen():
 
         return False
 
-    def get_incar(self, ISIF = 3, U = True) -> None:
+    def get_incar(self, ISIF=3, U=True) -> None:
         """
         :param ISIF: 3 for structural optimization, 2 for NEB
         :param U: +U if U is true.
@@ -470,7 +470,7 @@ class InputGen():
             additional['LDAU'] = 'TRUE'
             additional['LDAUTYPE'] = 2
             additional['LDAUPRINT'] = 1
-            additional['LDAUJ'] = ' '.join([str(0) for v in ordered_els])
+            additional['LDAUJ'] = ' '.join([str(0) for _ in ordered_els])
             additional['LDAUL'] = ' '.join([str(U_data[el]['L']) for el in U_data])
             additional['LDAUU'] = ' '.join([str(U_data[el]['U']) for el in U_data])
 
@@ -535,8 +535,7 @@ class InputGen():
             options['partition'] = partition
             options['ntasks-per-node'] = 128
             launch_line = 'module load intelmpi/20.4-intel20.4\n    mpirun -n {} ' \
-                          '/jet/home/yychoi/bin/Bridges2/vasp_gam > vasp.out\n'.format(
-                nodes * 128)
+                          '/jet/home/yychoi/bin/Bridges2/vasp_gam > vasp.out\n'.format(nodes * 128)
 
         elif self.hpc == 'savio':
 
@@ -549,8 +548,7 @@ class InputGen():
             options['qos'] = qos
             options['ntasks'] = ntasks
             launch_line = 'mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4' \
-                          '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(
-                ntasks)
+                          '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(ntasks)
 
         elif self.hpc == 'cori':
 
@@ -561,8 +559,7 @@ class InputGen():
             options['constraint'] = constraint
             options['qos'] = qos
             launch_line = 'srun -n {} /global/homes/y/yychoi/bin/VASP_20190930/KNL/vasp.5.4' \
-                          '.4_vtst178_with_DnoAugXCMeta/vasp_std_knl > vasp.out\n'.format(
-                ntasks)
+                          '.4_vtst178_with_DnoAugXCMeta/vasp_std_knl > vasp.out\n'.format(ntasks)
 
         else:
             launch_line = ''
@@ -612,7 +609,6 @@ class InputGen():
 
 
 def main(machine, hpc, option) -> None:
-
     calc_dir = ''
     if machine == 'savio':
         calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
@@ -630,7 +626,7 @@ def main(machine, hpc, option) -> None:
     if not os.path.exists(calc_dir):
         warnings.warn("Running in the wrong machine", DeprecationWarning)
 
-    if not hpc in ['savio', 'cori', 'stampede', 'bridges2']:
+    if hpc not in ['savio', 'cori', 'stampede', 'bridges2']:
         warnings.warn("Check hpc option", DeprecationWarning)
 
     calc_dir = os.path.join(calc_dir, 'calc')
@@ -650,8 +646,8 @@ def main(machine, hpc, option) -> None:
 
     return
 
-def launchjobs() -> None:
 
+def launchjobs() -> None:
     return
 
 
@@ -671,8 +667,8 @@ def changelatticevector():
 
     return new_structure
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=True, default='YUN',
                         help="Machine that want to run this python file. Yun, cori, stampede, "
