@@ -216,7 +216,8 @@ class PoscarGen(object):
         try:
             print("Transforming to Ordered structures...")
             odst = OrderDisorderedStructureTransformation(0, False, False)
-            s_list = odst.apply_transformation(s, 5)
+            # noinspection PyTypeChecker
+            s_list = odst.apply_transformation(s, 50)
         except IndexError:
             # Not a disordered structure, Only one option
             print("Warning - Check structure before you proceed.")
@@ -241,7 +242,7 @@ class PoscarGen(object):
         count_folder = 0
         count_structure = 0
 
-        for y in np.arange(0, 3.01, 1 / 3):
+        for y in np.arange(0, 3.01, 1 / 6):
             for x in np.arange(0, 1.51 - y / 2, 1 / 6):
 
                 count_folder += 1
@@ -377,7 +378,9 @@ class PoscarGen(object):
             detailed_spec_list = glob(i + "*/")
             for j in detailed_spec_list:
                 poscar_dir = os.path.join(j, "POSCAR")
+                # noinspection PyTypeChecker
                 x = float(poscar_dir.split('/')[-3].split('_')[0])
+                # noinspection PyTypeChecker
                 y = float(poscar_dir.split('/')[-3].split('_')[1])
                 z = poscar_dir.split('/')[-2]
                 # noinspection PyTypeChecker
