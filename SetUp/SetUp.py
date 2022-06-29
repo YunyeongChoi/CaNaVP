@@ -637,18 +637,13 @@ def main(machine, hpc, option) -> None:
     # Get HE state POSCAR.
     poscarrun.HEstaterun()
     # Get setup files for generated folder.
-    inputgenerator = InputGen(machine, hpc, calc_dir, option)
 
     spec_list = glob(calc_dir + "/*/")
     for i in spec_list:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
-            poscar_dir = os.path.join(j, "POSCAR")
-            x = float(poscar_dir.split('/')[-3].split('_')[0])
-            y = float(poscar_dir.split('/')[-3].split('_')[1])
-            z = poscar_dir.split('/')[-2]
-
-
+            inputgenerator = InputGen(machine, hpc, j, option)
+            inputgenerator.at_once()
 
     return
 
@@ -672,7 +667,6 @@ def changelatticevector():
                               test_structure.charge, False, False, False, None)
 
     return new_structure
-
 
 if __name__ == '__main__':
 
