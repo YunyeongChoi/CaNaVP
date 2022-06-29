@@ -610,24 +610,17 @@ class InputGen():
 
 def main(machine, hpc, option) -> None:
 
-    poscarrun = PoscarGen()
-    # Get ground state POSCAR.
-    poscarrun.run()
-
-    # Get HE state POSCAR.
-    poscarrun.HEstaterun()
-
     calc_dir = ''
     if machine == 'savio':
-        calc_dir = '/global/scratch/users/yychoi94/CaNaVP_DFT'
+        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
     elif machine == 'cori':
-        calc_dir = '/global/cscratch1/sd/yychoi'
+        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
     elif machine == 'stampede':
-        calc_dir = '/scratch/06991/tg862905'
+        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
     elif machine == 'YUN':
-        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc'
+        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
     elif machine == 'bridges2':
-        calc_dir = '/ocean/projects/dmr060032p/yychoi'
+        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp'
     else:
         warnings.warn("Check machine option", DeprecationWarning)
 
@@ -637,6 +630,12 @@ def main(machine, hpc, option) -> None:
     if not hpc in ['savio', 'cori', 'stampede', 'bridges2']:
         warnings.warn("Check hpc option", DeprecationWarning)
 
+    calc_dir = os.path.join(calc_dir, 'calc')
+    poscarrun = PoscarGen(calc_dir)
+    # Get ground state POSCAR.
+    poscarrun.run()
+    # Get HE state POSCAR.
+    poscarrun.HEstaterun()
     # Get setup files for generated folder.
     inputgenerator = InputGen(machine, hpc, calc_dir, option)
 
