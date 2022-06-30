@@ -608,7 +608,7 @@ class InputGen:
         return
 
 
-def main(machine, hpc, option) -> None:
+def main(machine, hpc, option, inputoption) -> None:
     calc_dir = ''
     if machine == 'savio':
         calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
@@ -631,12 +631,12 @@ def main(machine, hpc, option) -> None:
 
     calc_dir = os.path.join(calc_dir, 'calc')
 
-    if not machine == 'done':
+    if not inputoption:
         poscarrun = PoscarGen(calc_dir)
         # Get ground state POSCAR.
         poscarrun.run()
 
-    if not hpc == 'done':
+    if not inputoption:
         # Get HE state POSCAR.
         poscarrun.HEstaterun()
 
@@ -682,6 +682,8 @@ if __name__ == '__main__':
                              "bridges2, savio, done are available.")
     parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
+    parser.add_argument('-i', type=bool, required=False, default=True,
+                        help="Option for input generation. If true, only input generator runs.")
     args = parser.parse_args()
 
-    main(args.m, args.p, args.o)
+    main(args.m, args.p, args.o, args.i)
