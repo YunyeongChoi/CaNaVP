@@ -641,7 +641,9 @@ def main(machine, hpc, option, inputoption) -> None:
         poscarrun.HEstaterun()
 
     count = 0
+    groundcount = 0
     calclist = {}
+    groundlist = {}
     # Get setup files for generated folder.
     spec_list = glob(calc_dir + "/*/")
     for i in spec_list:
@@ -649,11 +651,16 @@ def main(machine, hpc, option, inputoption) -> None:
         for j in detailed_spec_list:
             count += 1
             calclist[count] = j
+            if str(0) in j.split("/")[-2]:
+                groundcount += 1
+                groundlist += 1
             inputgenerator = InputGen(machine, hpc, j, option)
             inputgenerator.at_once()
 
     fjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/calc_list.json'
     write_json(calclist, fjson)
+    groundjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/ground_list.json'
+    write_json(groundlist, groundjson)
     print(count)
 
     return
