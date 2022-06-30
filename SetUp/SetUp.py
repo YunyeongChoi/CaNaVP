@@ -534,7 +534,7 @@ class InputGen:
             options['account'] = account
             options['partition'] = partition
             options['ntasks-per-node'] = 128
-            launch_line = 'module load intelmpi/20.4-intel20.4\n    mpirun -n {} ' \
+            launch_line = '    module load intelmpi/20.4-intel20.4\n    mpirun -n {} ' \
                           '/jet/home/yychoi/bin/Bridges2/vasp_gam > vasp.out\n'.format(nodes * 128)
 
         elif self.hpc == 'savio':
@@ -547,7 +547,7 @@ class InputGen:
             options['partition'] = partition
             options['qos'] = qos
             options['ntasks'] = ntasks
-            launch_line = 'mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4' \
+            launch_line = '    mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4' \
                           '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(ntasks)
 
         elif self.hpc == 'cori':
@@ -558,7 +558,7 @@ class InputGen:
             options['account'] = account
             options['constraint'] = constraint
             options['qos'] = qos
-            launch_line = 'srun -n {} /global/homes/y/yychoi/bin/VASP_20190930/KNL/vasp.5.4' \
+            launch_line = '    srun -n {} /global/homes/y/yychoi/bin/VASP_20190930/KNL/vasp.5.4' \
                           '.4_vtst178_with_DnoAugXCMeta/vasp_std_knl > vasp.out\n'.format(ntasks)
 
         else:
@@ -640,13 +640,20 @@ def main(machine, hpc, option, inputoption) -> None:
         # Get HE state POSCAR.
         poscarrun.HEstaterun()
 
+    count = 0
+    calclist = {}
     # Get setup files for generated folder.
     spec_list = glob(calc_dir + "/*/")
     for i in spec_list:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
+            count += 1
+            calclist[count] = detailed_spec_list
             inputgenerator = InputGen(machine, hpc, j, option)
             inputgenerator.at_once()
+
+    fjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/calc_list.json'
+    write_json(calclist, fjson)
 
     return
 
