@@ -446,7 +446,7 @@ class InputGen:
                           'IBRION': 2}
         elif self.convergence_option == 'fast':
             additional = {'EDIFFG': -0.05,
-                          'EDIFF': 1e-4,
+                          'EDIFF': 3e-5,
                           'NPAR': 16,
                           'NSW': 300,
                           'IBRION': 2,
@@ -666,7 +666,31 @@ def main(machine, hpc, option, inputoption) -> None:
     return
 
 
-def launchjobs() -> None:
+def launchjobs(machine) -> None:
+
+    calc_dir = ''
+    if machine == 'savio':
+        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
+    elif machine == 'cori':
+        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
+    elif machine == 'stampede':
+        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
+    elif machine == 'YUN':
+        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
+    elif machine == 'bridges2':
+        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp'
+    else:
+        warnings.warn("Check machine option", DeprecationWarning)
+
+    calc_dir = os.path.join(calc_dir, 'calc')
+    groundjson = read_json(os.path.join(calc_dir, 'ground_list.json'))
+
+    for i in groundjson:
+        if i < 80:
+            os.chdir(i)
+            call(['sbatch', 'job.sh'])
+            print("{} launched".format(i))
+
     return
 
 
@@ -689,16 +713,21 @@ def changelatticevector():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', type=str, required=True, default='YUN',
+    parser.add_argument('-m', type=str, required=False, default='YUN',
                         help="Machine that want to run this python file. Yun, cori, stampede, "
-                             "bridges2, savio, done are available.")
-    parser.add_argument('-p', type=str, required=True, default='savio',
+                             "bridges2, savio are available.")
+    parser.add_argument('-p', type=str, required=False, default='savio',
                         help="HPC that want to run DFT calculation. cori, stampede, "
-                             "bridges2, savio, done are available.")
+                             "bridges2, savio are available.")
     parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
     parser.add_argument('-i', type=bool, required=False, default=True,
                         help="Option for input generation. If true, only input generator runs.")
+    parser.add_argument('-l', type=bool, required=False, default=True,
+                        help="Option for run jobs. If true, runs.")
     args = parser.parse_args()
 
     main(args.m, args.p, args.o, args.i)
+
+    if args.l:
+        launchjobs(args.m)
