@@ -648,12 +648,13 @@ def main(machine, hpc, option, inputoption) -> None:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
             count += 1
-            calclist[count] = detailed_spec_list
+            calclist[count] = j
             inputgenerator = InputGen(machine, hpc, j, option)
             inputgenerator.at_once()
 
     fjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/calc_list.json'
     write_json(calclist, fjson)
+    print(count)
 
     return
 
