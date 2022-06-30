@@ -630,13 +630,17 @@ def main(machine, hpc, option) -> None:
         warnings.warn("Check hpc option", DeprecationWarning)
 
     calc_dir = os.path.join(calc_dir, 'calc')
-    poscarrun = PoscarGen(calc_dir)
-    # Get ground state POSCAR.
-    poscarrun.run()
-    # Get HE state POSCAR.
-    poscarrun.HEstaterun()
-    # Get setup files for generated folder.
 
+    if not machine == 'done':
+        poscarrun = PoscarGen(calc_dir)
+        # Get ground state POSCAR.
+        poscarrun.run()
+
+    if not hpc == 'done':
+        # Get HE state POSCAR.
+        poscarrun.HEstaterun()
+
+    # Get setup files for generated folder.
     spec_list = glob(calc_dir + "/*/")
     for i in spec_list:
         detailed_spec_list = glob(i + "*/")
@@ -672,11 +676,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=True, default='YUN',
                         help="Machine that want to run this python file. Yun, cori, stampede, "
-                             "bridges2, savio are available.")
+                             "bridges2, savio, done are available.")
     parser.add_argument('-p', type=str, required=True, default='savio',
                         help="HPC that want to run DFT calculation. cori, stampede, "
-                             "bridges2, savio are available.")
-    parser.add_argument('-o', type=str, required=True, default='fast',
+                             "bridges2, savio, done are available.")
+    parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
     args = parser.parse_args()
 
