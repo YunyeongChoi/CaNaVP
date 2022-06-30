@@ -653,7 +653,7 @@ def main(machine, hpc, option, inputoption) -> None:
             calclist[count] = j
             if str(0) in j.split("/")[-2]:
                 groundcount += 1
-                groundlist += 1
+                groundlist[count] = j
             inputgenerator = InputGen(machine, hpc, j, option)
             inputgenerator.at_once()
 
