@@ -516,7 +516,7 @@ class InputGen:
                    'ntasks': ntasks,
                    'job-name': self.get_jobname}
 
-        if self.hpc == 'stampede':
+        if self.hpc == 'stampede2':
 
             account = 'TG-DMR970008S'
             partition = 'normal'
@@ -614,7 +614,7 @@ def main(machine, hpc, option, inputoption) -> None:
         calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
     elif machine == 'cori':
         calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
-    elif machine == 'stampede':
+    elif machine == 'stampede2':
         calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
     elif machine == 'YUN':
         calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
@@ -626,7 +626,7 @@ def main(machine, hpc, option, inputoption) -> None:
     if not os.path.exists(calc_dir):
         warnings.warn("Running in the wrong machine", DeprecationWarning)
 
-    if hpc not in ['savio', 'cori', 'stampede', 'bridges2']:
+    if hpc not in ['savio', 'cori', 'stampede2', 'bridges2']:
         warnings.warn("Check hpc option", DeprecationWarning)
 
     calc_dir = os.path.join(calc_dir, 'calc')
@@ -673,7 +673,7 @@ def launchjobs(machine) -> None:
         calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
     elif machine == 'cori':
         calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
-    elif machine == 'stampede':
+    elif machine == 'stampede2':
         calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
     elif machine == 'YUN':
         calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
@@ -714,10 +714,10 @@ def changelatticevector():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=False, default='YUN',
-                        help="Machine that want to run this python file. Yun, cori, stampede, "
+                        help="Machine that want to run this python file. Yun, cori, stampede2, "
                              "bridges2, savio are available.")
     parser.add_argument('-p', type=str, required=False, default='savio',
-                        help="HPC that want to run DFT calculation. cori, stampede, "
+                        help="HPC that want to run DFT calculation. cori, stampede2, "
                              "bridges2, savio are available.")
     parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
