@@ -630,6 +630,8 @@ def main(machine, hpc, option, inputoption) -> None:
         warnings.warn("Check hpc option", DeprecationWarning)
 
     calc_dir = os.path.join(calc_dir, 'calc')
+    fjson = os.path.join(calc_dir, 'calc_list.json')
+    groundjson = os.path.join(calc_dir, 'ground_list.json')
 
     if not inputoption:
         poscarrun = PoscarGen(calc_dir)
@@ -653,13 +655,11 @@ def main(machine, hpc, option, inputoption) -> None:
             calclist[count] = j
             if str(0) in j.split("/")[-2]:
                 groundcount += 1
-                groundlist[count] = j
+                groundlist[groundcount] = j
             inputgenerator = InputGen(machine, hpc, j, option)
             inputgenerator.at_once()
 
-    fjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/calc_list.json'
     write_json(calclist, fjson)
-    groundjson = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp/ground_list.json'
     write_json(groundlist, groundjson)
     print(count)
 
