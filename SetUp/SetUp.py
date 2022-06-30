@@ -686,10 +686,10 @@ def launchjobs(machine) -> None:
     groundjson = read_json(os.path.join(calc_dir, 'ground_list.json'))
 
     for i in groundjson:
-        if i < 80:
-            os.chdir(i)
+        if int(i) < 120:
+            os.chdir(groundjson[i])
             call(['sbatch', 'job.sh'])
-            print("{} launched".format(i))
+            print("{} launched".format(groundjson[i]))
 
     return
 
