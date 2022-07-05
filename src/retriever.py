@@ -13,7 +13,7 @@ import os
 import warnings
 import numpy as np
 from glob import glob
-from SetUp.SetUp import InputGen
+from Src.setter import InputGen
 
 # Pymatgen import
 from pymatgen.core.structure import Structure
