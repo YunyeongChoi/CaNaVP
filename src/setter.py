@@ -487,7 +487,7 @@ class InputGen:
         # Write WAVECAR, start from WAVECAR.
         additional['LWAVE'] = "TRUE"
         # For electronic step convergence.
-        additional['ALGO'] = "ALL"
+        additional['ALGO'] = "All"
 
         vsu.incar(is_geometry_opt=True, mag='fm', additional=additional)
 
