@@ -720,7 +720,7 @@ def changelatticevector():
 
     return new_structure
 
-"""
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=False, default='YUN',
@@ -741,4 +741,3 @@ if __name__ == '__main__':
 
     if args.l:
         launchjobs(args.m)
-"""
