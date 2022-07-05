@@ -4,8 +4,9 @@
 Created on 06/28/2022
 
 @author: yun
-@purpose: retrieve energy, magnetic moment, stress tensor from VASP calculations. Data cleaning for
-further cluster expansion.
+@purpose: retrieve energy, magnetic moment, stress tensor from VASP calculations. Errors and
+Wanrings are also collected for consecutive running of VASP. Data cleaning for further cluster
+expansion and Monte Carlo simulations.
 """
 
 # General import
@@ -13,7 +14,7 @@ import os
 import warnings
 import numpy as np
 from glob import glob
-from Src.setter import InputGen
+from src.setter import InputGen
 
 # Pymatgen import
 from pymatgen.core.structure import Structure

@@ -28,7 +28,7 @@ from compmatscipy.CompAnalyzer import CompAnalyzer
 from compmatscipy.handy_functions import read_json, write_json, is_slurm_job_in_queue
 from compmatscipy.HelpWithVASP import VASPSetUp, VASPBasicAnalysis, JobSubmission, magnetic_els
 
-__basestructure__ = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
+__basestructure__ = os.path.join(os.getcwd().replace("src", "setup"), "Na4V2(PO4)3_POSCAR")
 
 
 class NasiconSite(PeriodicSite):
@@ -148,7 +148,7 @@ class PoscarGen(object):
     # Set oxidation States for atoms.
     ox_states = {'Ca': 2, 'Na': 1, 'P': 5, 'Ni': 3, 'Mn': 4, 'Cr': 5, 'O': -2}
 
-    def __init__(self, calc_dir="/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test"):
+    def __init__(self, calc_dir="/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test"):
 
         self.basestructure = Structure.from_file(__basestructure__)
         self.decoratedstructure = NasiconStructure(self.basestructure)
@@ -402,8 +402,8 @@ class InputGen:
         :param machine: Machine that build files. YUN, cori, savio, stampede, bridges2, ginar.
         :param hpc: Machine that actually run calculations. cori, savio, stampede, bridges2 ginar.
         :param calc_dir: Directory that contains POSCAR file.
-        test_calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test/0.5_1.0'
-        test_poscar = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc_test/0.5_1.0/0/POSCAR'
+        test_calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test/0.5_1.0'
+        test_poscar = '/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test/0.5_1.0/0/POSCAR'
         test_structure = Structure.from_file(test_poscar)
 
         Need to add option fast / full option.
@@ -430,11 +430,14 @@ class InputGen:
 
         return False
 
-    def get_incar(self, ISIF=3, U=True) -> None:
+    def get_incar(self, ISIF = 3, U = True) -> None:
         """
         :param ISIF: 3 for structural optimization, 2 for NEB
         :param U: +U if U is true.
         :return: Write INCAR in self.calc_dir directory.
+        # Algo all, LMAXMIX 4 if d 6 if f, LWAVE TRUE, AMIX 0.2 BMIX 0.0001
+        # ISTART 2 if WAVECAR exists.
+        # Warning if OSZICAR exists, but WAVECAR not exists.
         """
         vsu = VASPSetUp(self.calc_dir)
 
@@ -445,7 +448,7 @@ class InputGen:
                           'NSW': 600,
                           'IBRION': 2}
         elif self.convergence_option == 'fast':
-            additional = {'EDIFFG': -0.05,
+            additional = {'EDIFFG': -0.03,
                           'EDIFF': 3e-5,
                           'NPAR': 16,
                           'NSW': 300,
@@ -476,8 +479,15 @@ class InputGen:
 
         additional['ISYM'] = 0
         additional['ISMEAR'] = 0
-        additional['AMIX'] = 0.1
-        additional['BMIX'] = 0.01
+        # Linear Mixing.
+        additional['AMIX'] = 0.2
+        additional['BMIX'] = 0.0001
+        # for d orbital 4, f orbital 6.
+        additional['LMAXMIX'] = 4
+        # Write WAVECAR, start from WAVECAR.
+        additional['LWAVE'] = "TRUE"
+        # For electronic step convergence.
+        additional['ALGO'] = "ALL"
 
         vsu.incar(is_geometry_opt=True, mag='fm', additional=additional)
 
@@ -611,15 +621,15 @@ class InputGen:
 def main(machine, hpc, option, inputoption) -> None:
     calc_dir = ''
     if machine == 'savio':
-        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
+        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
     elif machine == 'cori':
-        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
+        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
     elif machine == 'stampede2':
-        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
+        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
     elif machine == 'YUN':
-        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
+        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
     elif machine == 'bridges2':
-        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp'
+        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
     else:
         warnings.warn("Check machine option", DeprecationWarning)
 
@@ -670,15 +680,15 @@ def launchjobs(machine) -> None:
 
     calc_dir = ''
     if machine == 'savio':
-        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/SetUp'
+        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
     elif machine == 'cori':
-        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/SetUp'
+        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
     elif machine == 'stampede2':
-        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/SetUp'
+        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
     elif machine == 'YUN':
-        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/SetUp'
+        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
     elif machine == 'bridges2':
-        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/SetUp'
+        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
     else:
         warnings.warn("Check machine option", DeprecationWarning)
 
@@ -698,7 +708,7 @@ def changelatticevector():
     # Will be deleted.
     from pymatgen.core.lattice import Lattice
 
-    test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/SetUp/calc/0.167_2.0/0/POSCAR"
+    test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/setup/calc/0.167_2.0/0/POSCAR"
     test_structure = Structure.from_file(test_poscar)
     test_lattice = Lattice([[16.7288, 0., 0.],
                             [-4.3644, 7.559363, 0.],
@@ -710,7 +720,7 @@ def changelatticevector():
 
     return new_structure
 
-
+"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=False, default='YUN',
@@ -731,3 +741,4 @@ if __name__ == '__main__':
 
     if args.l:
         launchjobs(args.m)
+"""
