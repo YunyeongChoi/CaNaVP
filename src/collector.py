@@ -11,7 +11,6 @@ from src.setter import read_json, write_json
 
 def main(calc_dir) -> None:
 
-    fjson = read_json(os.path.join(calc_dir, 'calc_list.json'))
     # Target json file to run.
     groundjson = read_json(os.path.join(calc_dir, 'result.json'))
 
