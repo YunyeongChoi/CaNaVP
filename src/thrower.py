@@ -53,7 +53,7 @@ class launcher(object):
 
         self.calc_dir = os.path.join(self.calc_dir, 'calc')
         # Target json file to run.
-        self.resultjson = read_json(os.path.join(calc_dir, 'result.json'))
+        self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
 
     def poscar_setter(self) -> None:
 
@@ -73,7 +73,8 @@ class launcher(object):
             if not self.resultjson[i]["convergence"]:
                 os.chdir(self.resultjson[i]["directory"])
                 if self.input:
-                    inputgenerator = InputGen(self.machine, self.hpc, i, self.option)
+                    inputgenerator = InputGen(self.machine, self.hpc,
+                            self.resultjson[i]["directory"], self.option)
                     inputgenerator.at_once()
                 call(['sbatch', 'job.sh'])
                 print("{} launched".format(self.resultjson[i]))
@@ -115,11 +116,7 @@ if __name__ == '__main__':
                         help="Option for run jobs. If true, runs.")
     args = parser.parse_args()
 
-    print(type(args.l))
-
-    """
     lj = launcher(args.m, args.p, args.o, args.i)
     lj.poscar_setter()
     if args.l:
         lj.launch_jobs()
-    """
