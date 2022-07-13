@@ -16,6 +16,7 @@ Which design pattern is the best?
 
 # General import
 import os
+import json
 import warnings
 from typing import Type, Any, Union
 
@@ -243,7 +244,7 @@ class vasp_retriever(object):
         return float(E) / self.setting['NIONS']
     
     @property
-    def get_contcar(self) -> Structure:
+    def get_contcar(self) -> json:
         
         fcontcar = os.path.join(self.calc_dir, 'CONTCAR')
         if not os.path.exists(fcontcar):
@@ -251,10 +252,10 @@ class vasp_retriever(object):
         else:
             contcar = Structure.from_file(fcontcar)
 
-        return contcar
+        return contcar.to_json()
 
     @property
-    def get_poscar(self) -> Structure:
+    def get_poscar(self) -> json:
 
         fposcar = os.path.join(self.calc_dir, 'POSCAR')
         if not os.path.exists(fposcar):
@@ -262,7 +263,7 @@ class vasp_retriever(object):
         else:
             poscar = Structure.from_file(fposcar)
 
-        return poscar
+        return poscar.to_json()
 
     def check_atommovement(self) -> None:
 

@@ -1,6 +1,6 @@
 """
 Collect convergence, energy, magmom, poscar, contcar.
-{1 : {"concent": str,"poscar" : @pymatgen.core.Structure, "contcar" : @pymatgen.core.Structure,
+{1 : {"concent": str, "poscar" : @pymatgen.core.Structure, "contcar" : @pymatgen.core.Structure,
 "convergence": bool, "energy": float, "magmom": list}}
 """
 import os
@@ -30,11 +30,11 @@ def main(calc_dir) -> None:
                 spec = {}
                 vr = vasp_retriever(os.path.join(j, 'U'))
                 spec["energy"] = vr.get_energy
-                #spec["poscar"] = vr.get_poscar
-                #spec["contcar"] = vr.get_contcar
+                spec["poscar"] = vr.get_poscar
+                spec["contcar"] = vr.get_contcar
                 spec["convergence"] = vr.is_converged
                 spec["magmom"] = vr.get_magmom()
-                spec["concen"] = j.split("/")[-3]
+                spec["directory"] = j
                 groundcount += 1
                 groundlist[groundcount] = spec
 

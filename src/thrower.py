@@ -1,10 +1,9 @@
 import os
 import warnings
 import argparse
-from glob import glob
 from subprocess import call
 from pymatgen.core.structure import Structure
-from src.setter import PoscarGen, InputGen, write_json, read_json
+from src.setter import PoscarGen, InputGen, read_json
 
 
 class launcher(object):
@@ -17,6 +16,8 @@ class launcher(object):
         :param option: Convergence option. fast or full.
         :param input: Input option. If true make input files again.
         :param calc_dir: Calculation directory.
+
+        # Need to be rewrite. Very dirty structure.
         """
 
         self.machine = machine
@@ -51,54 +52,36 @@ class launcher(object):
         self.input = input
 
         self.calc_dir = os.path.join(self.calc_dir, 'calc')
-        self.fjson = read_json(os.path.join(self.calc_dir, 'calc_list.json'))
         # Target json file to run.
-        self.groundjson = read_json(os.path.join(calc_dir, 'ground_list.json'))
+        self.resultjson = read_json(os.path.join(calc_dir, 'result.json'))
 
-    def main(self) -> None:
+    def poscar_setter(self) -> None:
 
         if not self.input:
+            print("Setting POSCARs...")
             poscarrun = PoscarGen(self.input)
             # Get ground state POSCAR.
             poscarrun.run()
             # Get HE state POSCAR.
             poscarrun.HEstaterun()
 
-        count = 0
-        groundcount = 0
-        calclist = {}
-        groundlist = {}
-        # Get setup files for generated folder.
-        spec_list = glob(self.calc_dir + "/*/")
-        for i in spec_list:
-            detailed_spec_list = glob(i + "*/")
-            for j in detailed_spec_list:
-                count += 1
-                calclist[count] = j
-                if str(0) in j.split("/")[-2]:
-                    groundcount += 1
-                    groundlist[groundcount] = j
-                inputgenerator = InputGen(self.machine, self.hpc, j, self.option)
-                inputgenerator.at_once()
-
-        write_json(calclist, self.fjson)
-        write_json(groundlist, self.groundjson)
-        print(count)
-
         return
 
-    def launchjobs(self) -> None:
+    def launch_jobs(self) -> None:
 
-        for i in self.groundjson:
-            if int(i) < 120:
-                os.chdir(self.groundjson[i])
+        for i in self.resultjson:
+            if not self.resultjson[i]["convergence"]:
+                os.chdir(self.resultjson[i]["directory"])
+                if self.input:
+                    inputgenerator = InputGen(self.machine, self.hpc, i, self.option)
+                    inputgenerator.at_once()
                 call(['sbatch', 'job.sh'])
-                print("{} launched".format(self.groundjson[i]))
+                print("{} launched".format(self.resultjson[i]))
 
         return
 
 
-def changelatticevector():
+def change_lattice_vector():
     # Will be deleted.
     from pymatgen.core.lattice import Lattice
 
@@ -126,13 +109,17 @@ if __name__ == '__main__':
     parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
     parser.add_argument('-i', type=bool, required=False, default=True,
-                        help="Option for input generation. If true, only input generator runs.")
+                        help="Option for input generation. If true, only input generator runs."
+                             "If false, only poscar_setter runs.")
     parser.add_argument('-l', type=bool, required=False, default=True,
                         help="Option for run jobs. If true, runs.")
     args = parser.parse_args()
 
-    lj = launcher(args.m, args.p, args.o, args.i)
-    lj.launchjobs()
+    print(type(args.l))
 
+    """
+    lj = launcher(args.m, args.p, args.o, args.i)
+    lj.poscar_setter()
     if args.l:
-        launchjobs(args.m)
+        lj.launch_jobs()
+    """
