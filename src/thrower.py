@@ -7,90 +7,95 @@ from pymatgen.core.structure import Structure
 from src.setter import PoscarGen, InputGen, write_json, read_json
 
 
-def main(machine, hpc, option, inputoption) -> None:
-    calc_dir = ''
-    if machine == 'savio':
-        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
-    elif machine == 'cori':
-        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
-    elif machine == 'stampede2':
-        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
-    elif machine == 'YUN':
-        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
-    elif machine == 'bridges2':
-        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
-    else:
-        warnings.warn("Check machine option", DeprecationWarning)
+class launcher(object):
 
-    if not os.path.exists(calc_dir):
-        warnings.warn("Running in the wrong machine", DeprecationWarning)
+    def __init__(self, machine, hpc, option, input, calc_dir=None):
 
-    if hpc not in ['savio', 'cori', 'stampede2', 'bridges2']:
-        warnings.warn("Check hpc option", DeprecationWarning)
+        """
+        :param machine: Machine to make input files.
+        :param hpc: Machine to run jobs.
+        :param option: Convergence option. fast or full.
+        :param input: Input option. If true make input files again.
+        :param calc_dir: Calculation directory.
+        """
 
-    calc_dir = os.path.join(calc_dir, 'calc')
-    fjson = os.path.join(calc_dir, 'calc_list.json')
-    groundjson = os.path.join(calc_dir, 'ground_list.json')
+        self.machine = machine
+        if calc_dir is None:
+            if self.machine == 'savio':
+                self.calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
+            elif self.machine == 'cori':
+                self.calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
+            elif self.machine == 'stampede2':
+                self.calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
+            elif self.machine == 'YUN':
+                self.calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
+            elif self.machine == 'bridges2':
+                self.calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
+            else:
+                warnings.warn("Check machine option", DeprecationWarning)
+            if not os.path.exists(self.calc_dir):
+                warnings.warn("Running in the wrong machine", DeprecationWarning)
+        else:
+            self.calc_dir = calc_dir
 
-    if not inputoption:
-        poscarrun = PoscarGen(calc_dir)
-        # Get ground state POSCAR.
-        poscarrun.run()
+        if hpc not in ['savio', 'cori', 'stampede2', 'bridges2']:
+            warnings.warn("Check hpc option", DeprecationWarning)
+        self.hpc = hpc
 
-    if not inputoption:
-        # Get HE state POSCAR.
-        poscarrun.HEstaterun()
+        if option not in ['fast', 'full']:
+            warnings.warn("Check calculation option", DeprecationWarning)
+        self.option = option
 
-    count = 0
-    groundcount = 0
-    calclist = {}
-    groundlist = {}
-    # Get setup files for generated folder.
-    spec_list = glob(calc_dir + "/*/")
-    for i in spec_list:
-        detailed_spec_list = glob(i + "*/")
-        for j in detailed_spec_list:
-            count += 1
-            calclist[count] = j
-            if str(0) in j.split("/")[-2]:
-                groundcount += 1
-                groundlist[groundcount] = j
-            inputgenerator = InputGen(machine, hpc, j, option)
-            inputgenerator.at_once()
+        if input is not bool:
+            warnings.warn("Check input option", DeprecationWarning)
+        self.input = input
 
-    write_json(calclist, fjson)
-    write_json(groundlist, groundjson)
-    print(count)
+        self.calc_dir = os.path.join(self.calc_dir, 'calc')
+        self.fjson = read_json(os.path.join(self.calc_dir, 'calc_list.json'))
+        # Target json file to run.
+        self.groundjson = read_json(os.path.join(calc_dir, 'ground_list.json'))
 
-    return
+    def main(self) -> None:
 
+        if not self.input:
+            poscarrun = PoscarGen(self.input)
+            # Get ground state POSCAR.
+            poscarrun.run()
+            # Get HE state POSCAR.
+            poscarrun.HEstaterun()
 
-def launchjobs(machine) -> None:
+        count = 0
+        groundcount = 0
+        calclist = {}
+        groundlist = {}
+        # Get setup files for generated folder.
+        spec_list = glob(self.calc_dir + "/*/")
+        for i in spec_list:
+            detailed_spec_list = glob(i + "*/")
+            for j in detailed_spec_list:
+                count += 1
+                calclist[count] = j
+                if str(0) in j.split("/")[-2]:
+                    groundcount += 1
+                    groundlist[groundcount] = j
+                inputgenerator = InputGen(self.machine, self.hpc, j, self.option)
+                inputgenerator.at_once()
 
-    calc_dir = ''
-    if machine == 'savio':
-        calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
-    elif machine == 'cori':
-        calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
-    elif machine == 'stampede2':
-        calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
-    elif machine == 'YUN':
-        calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
-    elif machine == 'bridges2':
-        calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
-    else:
-        warnings.warn("Check machine option", DeprecationWarning)
+        write_json(calclist, self.fjson)
+        write_json(groundlist, self.groundjson)
+        print(count)
 
-    calc_dir = os.path.join(calc_dir, 'calc')
-    groundjson = read_json(os.path.join(calc_dir, 'ground_list.json'))
+        return
 
-    for i in groundjson:
-        if int(i) < 120:
-            os.chdir(groundjson[i])
-            call(['sbatch', 'job.sh'])
-            print("{} launched".format(groundjson[i]))
+    def launchjobs(self) -> None:
 
-    return
+        for i in self.groundjson:
+            if int(i) < 120:
+                os.chdir(self.groundjson[i])
+                call(['sbatch', 'job.sh'])
+                print("{} launched".format(self.groundjson[i]))
+
+        return
 
 
 def changelatticevector():
@@ -126,7 +131,8 @@ if __name__ == '__main__':
                         help="Option for run jobs. If true, runs.")
     args = parser.parse_args()
 
-    main(args.m, args.p, args.o, args.i)
+    lj = launcher(args.m, args.p, args.o, args.i)
+    lj.launchjobs()
 
     if args.l:
         launchjobs(args.m)

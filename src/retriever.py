@@ -8,6 +8,10 @@ Created on 06/28/2022
 Wanrings are also collected for consecutive running of VASP. Data cleaning for further cluster
 expansion and Monte Carlo simulations.
 Maybe parse chgcar?
+
+Need an abstract class 'retriever'.
+retriever -> vasp_retriever, NEB_retriever, AIMD_retriever, SCAN_retriever, vdw_retriever.
+Which design pattern is the best?
 """
 
 # General import
@@ -243,7 +247,7 @@ class vasp_retriever(object):
         
         fcontcar = os.path.join(self.calc_dir, 'CONTCAR')
         if not os.path.exists(fcontcar):
-            warnings.warn("No CONTCAR file exists in directory", DeprecationWarning)
+            raise ValueError("No CONTCAR file exists in directory")
         else:
             contcar = Structure.from_file(fcontcar)
 
@@ -254,7 +258,7 @@ class vasp_retriever(object):
 
         fposcar = os.path.join(self.calc_dir, 'POSCAR')
         if not os.path.exists(fposcar):
-            warnings.warn("No POSCAR file exists in directory", DeprecationWarning)
+            raise ValueError("No POSCAR file exists in directory")
         else:
             poscar = Structure.from_file(fposcar)
 
@@ -266,9 +270,9 @@ class vasp_retriever(object):
 
         return
 
-    def get_magmom(self) -> dict:
+    def get_magmom(self) -> list:
 
-        return {}
+        return []
 
     def get_stress_tensor(self) -> dict:
 
