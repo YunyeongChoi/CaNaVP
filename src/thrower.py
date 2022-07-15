@@ -116,6 +116,7 @@ if __name__ == '__main__':
                         help="Option for run jobs. If true, runs.")
     args = parser.parse_args()
 
+    # Need to test argument parser type checker.
     lj = launcher(args.m, args.p, args.o, args.i)
     lj.poscar_setter()
     if args.l:

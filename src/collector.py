@@ -7,6 +7,7 @@ import os
 from glob import glob
 from src.retriever import vasp_retriever
 from src.setter import read_json, write_json
+from pymatgen.core.structure import Structure
 
 
 def main(calc_dir) -> None:
@@ -30,10 +31,9 @@ def main(calc_dir) -> None:
                 spec = {}
                 vr = vasp_retriever(os.path.join(j, 'U'))
                 spec["energy"] = vr.get_energy
-                spec["poscar"] = vr.get_poscar
-                spec["contcar"] = vr.get_contcar
+                spec["poscar"] = vr.get_poscar.to_json()
+                spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
                 spec["convergence"] = vr.is_converged
-                spec["magmom"] = vr.get_magmom()
                 spec["directory"] = j
                 groundcount += 1
                 groundlist[groundcount] = spec

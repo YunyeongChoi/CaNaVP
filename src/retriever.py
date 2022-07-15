@@ -19,12 +19,9 @@ import os
 import json
 import warnings
 from typing import Type, Any, Union
-
 import numpy as np
 from glob import glob
-
 from pymatgen.core import Structure
-
 from src.setter import InputGen
 
 # Pymatgen import
@@ -40,10 +37,10 @@ class vasp_retriever(object):
 
         self.calc_dir = calc_dir
         self.energy = 0
-        self.magmom = self.get_magmom()
         self.stress_tensor = self.get_stress_tensor()
         self.setting = self.get_setting()
-        self.warns = ''
+        self.magmom = self.get_magnetic_moment()
+        self.warns = {}
         self.errors = ''
         self.band = ''
         self.chg = ''
@@ -152,7 +149,7 @@ class vasp_retriever(object):
                             line_appeared = True
                         if line_appeared and (param in line):
                             if param not in ['ROPT', 'LDAUL', 'LDAUU', 'LDAUJ']:
-                                val = line.split(param)[1].split('=')[1].strip().split(' ')[0].\
+                                val = line.split(param)[1].split('=')[1].strip().split(' ')[0]. \
                                     replace(';', '')
                                 data[param] = self.is_int_float(val)
                                 break
@@ -242,20 +239,20 @@ class vasp_retriever(object):
                         E = float(''.join([c for c in line if c not in [' ', '\n', 'e', 'V']]))
                         break
         return float(E) / self.setting['NIONS']
-    
+
     @property
-    def get_contcar(self) -> json:
-        
+    def get_contcar(self) -> Structure:
+
         fcontcar = os.path.join(self.calc_dir, 'CONTCAR')
         if not os.path.exists(fcontcar):
             raise ValueError("No CONTCAR file exists in directory")
         else:
             contcar = Structure.from_file(fcontcar)
 
-        return contcar.to_json()
+        return contcar
 
     @property
-    def get_poscar(self) -> json:
+    def get_poscar(self) -> Structure:
 
         fposcar = os.path.join(self.calc_dir, 'POSCAR')
         if not os.path.exists(fposcar):
@@ -263,17 +260,93 @@ class vasp_retriever(object):
         else:
             poscar = Structure.from_file(fposcar)
 
-        return poscar.to_json()
+        return poscar
 
-    def check_atommovement(self) -> None:
+    def check_atom_movement(self) -> None:
 
         # Check POSCAR / CONTCAR difference.
+        poscar = self.get_poscar
+        contcar = self.get_contcar
+
+        for i, j in enumerate(poscar):
+            poscar_cart_coords = j.coords
+            contcar_cart_coords = contcar[i].coords
+            distance = np.linalg.norm(poscar_cart_coords, contcar_cart_coords)
+
+            # Maybe need warning class?
+            if distance > 1.5:
+                warnings.warn("{}th atom moved it's position".format(i), DeprecationWarning)
+
+        # Need a more clean way. Add exception.py would be helpful.
+        self.warns["Atom movement"] = True
 
         return
 
-    def get_magmom(self) -> list:
+    def get_magnetic_moment(self) -> list:
+        """
+        :return: List of total absolute magnetic moment in order of structure.
+        """
+        outcar = os.path.join(self.calc_dir, 'OUTCAR')
+        count = 0
+        recount = 0
+        magcount = 0
+        magmoms = []
 
-        return []
+        with open(outcar, 'r') as f:
+            for line in f:
+                if "magnetization (x)" in line:
+                    count += 1
+
+        with open(outcar, 'r') as g:
+            for line in g:
+                if "magnetization (x)" in line:
+                    recount += 1
+                if count == recount:
+                    magcount += 1
+                    if magcount > 4:
+                        magmoms.append(abs(float(line.split(" ")[-1].strip())))
+                    if magcount == self.setting['NIONS'] + 4:
+                        break
+
+        if not (len(magmoms) == self.setting['NIONS']):
+            raise ValueError("Number of Magnetic moments are not same as number of ions.")
+
+        return magmoms
+
+    def get_oxidation_decorated_structure(self):
+        """
+        Only applied for CaNaVP for now.
+        :return: Oxidation decorated structure based on the magmoms.
+        """
+        structure = self.get_contcar
+        mag = self.magmom
+        E0 = self.get_energy
+
+        ox_ranges = {'V': {(0, 0.2): 5, (0.8, 1.2): 4, (1.6, 2.0): 3}}
+        default_ox = {'Ca': 2, 'Na': 1, 'P': 5, 'O': -2}
+        ox_list = []
+        solved_ox = True
+        for site_i, site in enumerate(structure.sites):
+            assigned = False
+            if site.species_string in ox_ranges.keys():
+                for (minmag, maxmag), magox in ox_ranges[site.species_string].items():
+                    if minmag <= mag[site_i] < maxmag:
+                        ox_list.append(magox)
+                        assigned = True
+                        break
+
+            elif site.species_string in default_ox.keys():
+                ox_list.append(default_ox[site.species_string])
+                assigned = True
+            if not assigned:
+                solved_ox = False
+
+        if solved_ox:
+            structure.add_oxidation_state_by_site(ox_list)
+            if np.abs(structure.charge) > 0.1:
+                raise ValueError("Charge is wrongly assigned.")
+
+        return structure
 
     def get_stress_tensor(self) -> dict:
 
