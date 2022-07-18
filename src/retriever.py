@@ -20,6 +20,7 @@ import json
 import warnings
 from typing import Type, Any, Union
 import numpy as np
+from pathlib import Path
 from glob import glob
 from pymatgen.core import Structure
 from src.setter import InputGen
@@ -225,6 +226,7 @@ class vasp_retriever(object):
         if not self.is_converged:
             print('calcuation is not converged')
             return np.nan
+
         oszicar = os.path.join(self.calc_dir, 'OSZICAR')
         if os.path.exists(oszicar):
             with open(oszicar) as f:
@@ -266,7 +268,10 @@ class vasp_retriever(object):
     def check_atom_movement(self) -> None:
 
         # Check POSCAR / CONTCAR difference.
-        poscar = self.get_poscar
+        # POSCAR should be original one. Not after the continuous runs.
+        upper_calc_dir = str(Path(self.calc_dir).parents[0])
+        fposcar = os.path.join(upper_calc_dir, 'POSCAR')
+        poscar = Structure.from_file(fposcar)
         contcar = self.get_contcar
 
         for i, j in enumerate(poscar):
@@ -288,6 +293,10 @@ class vasp_retriever(object):
         """
         :return: List of total absolute magnetic moment in order of structure.
         """
+
+        if not self.is_converged:
+            return []
+
         outcar = os.path.join(self.calc_dir, 'OUTCAR')
         count = 0
         recount = 0
@@ -322,9 +331,12 @@ class vasp_retriever(object):
         Only applied for CaNaVP for now.
         :return: Oxidation decorated structure based on the magmoms.
         """
+
+        if not self.is_converged:
+            return np.nan
+
         structure = self.get_contcar
         mag = self.magmom
-        E0 = self.get_energy
 
         ox_ranges = {'V': {(0, 0.2): 5, (0.8, 1.2): 4, (1.6, 2.0): 3}}
         default_ox = {'Ca': 2, 'Na': 1, 'P': 5, 'O': -2}

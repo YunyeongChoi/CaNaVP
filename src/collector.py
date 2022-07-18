@@ -20,16 +20,16 @@ def main(calc_dir) -> None:
     groundlist = {}
     # Get setup files for generated folder.
     spec_list = glob(calc_dir + "/*/")
-    print(spec_list)
     for i in spec_list:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
-            print(j)
             count += 1
             # Only ground state and it's HE variances.
             if str(0) in j.split("/")[-2]:
+                print(j)
                 spec = {}
                 vr = vasp_retriever(os.path.join(j, 'U'))
+                spec["setting"] = vr.get_setting
                 spec["energy"] = vr.get_energy
                 spec["poscar"] = vr.get_poscar.to_json()
                 spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
