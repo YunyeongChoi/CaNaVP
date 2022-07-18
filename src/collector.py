@@ -34,6 +34,7 @@ def main(calc_dir) -> None:
                 spec["poscar"] = vr.get_poscar.to_json()
                 spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
                 spec["convergence"] = vr.is_converged
+                spec["errors"] = vr.errors
                 spec["directory"] = j
                 groundcount += 1
                 groundlist[groundcount] = spec

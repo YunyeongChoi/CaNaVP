@@ -27,8 +27,9 @@ from src.setter import InputGen
 # Pymatgen import
 from pymatgen.core.structure import Structure
 from pymatgen.core.sites import PeriodicSite
+from src.vaspexception import NeutralChargeError, AtomMoveError
 
-test_folder = "/Users/yun/Desktop/github_codes/CaNaVP/setup/test_calc"
+test_folder = "/Users/yun/Desktop/github_codes/CaNaVP/setup/test_calc_2"
 
 
 class vasp_retriever(object):
@@ -41,7 +42,7 @@ class vasp_retriever(object):
         self.setting = self.get_setting()
         self.magmom = self.get_magnetic_moment()
         self.warns = {}
-        self.errors = ''
+        self.errors = []
         self.band = ''
         self.chg = ''
         self.dos = ''
@@ -274,11 +275,12 @@ class vasp_retriever(object):
             distance = np.linalg.norm(poscar_cart_coords, contcar_cart_coords)
 
             # Maybe need warning class?
-            if distance > 1.5:
-                warnings.warn("{}th atom moved it's position".format(i), DeprecationWarning)
-
-        # Need a more clean way. Add exception.py would be helpful.
-        self.warns["Atom movement"] = True
+            try:
+                if distance > 1.5:
+                    raise AtomMoveError("{}th atom moved it's position".format(i))
+                    # warnings.warn("{}th atom moved it's position".format(i), DeprecationWarning)
+            except AtomMoveError:
+                self.errors.append("{}th Atom-Moved".format(i))
 
         return
 
@@ -315,6 +317,8 @@ class vasp_retriever(object):
 
     def get_oxidation_decorated_structure(self):
         """
+        check folder - error occured during charge assignment.
+        /global/scratch/users/yychoi94/CaNaVP/setup/calc/1.0_0.5/0_Ca_HE/U
         Only applied for CaNaVP for now.
         :return: Oxidation decorated structure based on the magmoms.
         """
@@ -343,8 +347,12 @@ class vasp_retriever(object):
 
         if solved_ox:
             structure.add_oxidation_state_by_site(ox_list)
-            if np.abs(structure.charge) > 0.1:
-                raise ValueError("Charge is wrongly assigned.")
+            try:
+                if np.abs(structure.charge) > 0.1:
+                    raise NeutralChargeError("Charge is wrongly assigned.")
+            except NeutralChargeError:
+                # May has better way.
+                self.errors.append("Non-neutral")
 
         return structure
 
