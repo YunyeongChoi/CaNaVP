@@ -257,7 +257,8 @@ class vasp_retriever(object):
     @property
     def get_poscar(self) -> Structure:
 
-        fposcar = os.path.join(self.calc_dir, 'POSCAR')
+        upper_calc_dir = str(Path(self.calc_dir).parents[0])
+        fposcar = os.path.join(upper_calc_dir, 'POSCAR')
         if not os.path.exists(fposcar):
             raise ValueError("No POSCAR file exists in directory")
         else:
@@ -269,9 +270,8 @@ class vasp_retriever(object):
 
         # Check POSCAR / CONTCAR difference.
         # POSCAR should be original one. Not after the continuous runs.
-        upper_calc_dir = str(Path(self.calc_dir).parents[0])
-        fposcar = os.path.join(upper_calc_dir, 'POSCAR')
-        poscar = Structure.from_file(fposcar)
+
+        poscar = self.get_poscar
         contcar = self.get_contcar
 
         for i, j in enumerate(poscar):
@@ -333,7 +333,7 @@ class vasp_retriever(object):
         """
 
         if not self.is_converged:
-            return np.nan
+            return self.get_contcar
 
         structure = self.get_contcar
         mag = self.magmom

@@ -23,17 +23,17 @@ def main(calc_dir) -> None:
     for i in spec_list:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
-            count += 1
             # Only ground state and it's HE variances.
             if str(0) in j.split("/")[-2]:
+                count += 1
                 print(j)
                 spec = {}
                 vr = vasp_retriever(os.path.join(j, 'U'))
-                spec["setting"] = vr.get_setting
+                spec["convergence"] = vr.is_converged
                 spec["energy"] = vr.get_energy
                 spec["poscar"] = vr.get_poscar.to_json()
                 spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
-                spec["convergence"] = vr.is_converged
+                spec["setting"] = vr.get_setting
                 spec["errors"] = vr.errors
                 spec["directory"] = j
                 groundcount += 1
