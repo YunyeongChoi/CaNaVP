@@ -33,7 +33,7 @@ def main(calc_dir) -> None:
                 spec["energy"] = vr.get_energy
                 spec["poscar"] = vr.get_poscar.to_json()
                 spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
-                spec["setting"] = vr.get_setting
+                spec["setting"] = vr.get_setting()
                 spec["errors"] = vr.errors
                 spec["directory"] = j
                 groundcount += 1
