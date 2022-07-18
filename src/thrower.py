@@ -8,7 +8,7 @@ from src.setter import PoscarGen, InputGen, read_json
 
 class launcher(object):
 
-    def __init__(self, machine, hpc, option, input, calc_dir=None):
+    def __init__(self, machine, hpc, option, input, continuous, calc_dir=None):
 
         """
         :param machine: Machine to make input files.
@@ -51,6 +51,10 @@ class launcher(object):
             warnings.warn("Check input option", DeprecationWarning)
         self.input = input
 
+        if continuous is not bool:
+            warnings.warn("Check input option", DeprecationWarning)
+        self.continuous = continuous
+
         self.calc_dir = os.path.join(self.calc_dir, 'calc')
         # Target json file to run.
         self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
@@ -74,7 +78,15 @@ class launcher(object):
                 os.chdir(self.resultjson[i]["directory"])
                 if self.input:
                     inputgenerator = InputGen(self.machine, self.hpc,
-                            self.resultjson[i]["directory"], self.option)
+                            self.resultjson[i]["directory"], self.option, self.continuous)
+                    inputgenerator.at_once()
+                call(['sbatch', 'job.sh'])
+                print("{} launched".format(self.resultjson[i]))
+            elif len(self.resultjson[i]["errors"]) > 0:
+                os.chdir(self.resultjson[i]["directory"])
+                if self.input:
+                    inputgenerator = InputGen(self.machine, self.hpc,
+                            self.resultjson[i]["directory"], self.option, False)
                     inputgenerator.at_once()
                 call(['sbatch', 'job.sh'])
                 print("{} launched".format(self.resultjson[i]))
@@ -114,10 +126,13 @@ if __name__ == '__main__':
                              "If false, only poscar_setter runs.")
     parser.add_argument('-l', type=bool, required=False, default=True,
                         help="Option for run jobs. If true, runs.")
+    parser.add_argument('-c', type=bool, required=False, default=True,
+                        help="Option for continuous job or relaunch. If true run continuous job,"
+                             "else, relaunch from start.")
     args = parser.parse_args()
 
     # Need to test argument parser type checker.
-    lj = launcher(args.m, args.p, args.o, args.i)
+    lj = launcher(args.m, args.p, args.o, args.i, args.c)
     lj.poscar_setter()
     if args.l:
         lj.launch_jobs()

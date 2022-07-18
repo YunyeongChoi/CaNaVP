@@ -410,7 +410,7 @@ class InputGen:
     INCAR, KPOINTS, POTCAR, job script generator for VASP run.
     """
 
-    def __init__(self, machine, hpc, calc_dir, convergence_option):
+    def __init__(self, machine, hpc, calc_dir, convergence_option, continuous_option):
         """
         :param machine: Machine that build files. YUN, cori, savio, stampede, bridges2, ginar.
         :param hpc: Machine that actually run calculations. cori, savio, stampede, bridges2 ginar.
@@ -427,6 +427,7 @@ class InputGen:
         self.hpc = hpc
         self.calc_dir = calc_dir
         self.convergence_option = convergence_option
+        self.continuous_option = continuous_option
 
         return
 
@@ -599,7 +600,7 @@ class InputGen:
                     option = str(option)
                     f.write('%s --%s=%s\n' % ('#SBATCH', tag, option))
             f.write('\n')
-
+            """
             line = 'mkdir U; cd U;\n'
             f.write(line)
             line = "IsConv=`grep 'required accuracy' OUTCAR`;\n"
@@ -620,6 +621,27 @@ class InputGen:
             line = 'fi'
             f.write(line)
             f.close()
+            """
+            if self.continuous_option:
+                line = 'mkdir U; cd U;\n'
+                line += "IsConv=`grep 'required accuracy' OUTCAR`;\n"
+                line += 'if [ -z "${IsConv}" ]; then\n'
+                line += '    if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
+                line += '    if [ ! -s "POSCAR" ]; then\n'
+                line += '        cp ../{KPOINTS,POTCAR,POSCAR} .;\n'
+                line += '    fi\n'
+                line += '    cp ../INCAR .;\n'
+                f.write(line)
+                f.write(launch_line)
+                line = 'fi'
+                f.write(line)
+                f.close()
+            else:
+                line = 'mkdir U; cd U;\n'
+                line += 'cp ../{KPOINTS,POTCAR,POSCAR,INCAR} .;\n'
+                f.write(line)
+                f.write(launch_line)
+                f.close()
 
     def at_once(self):
 
