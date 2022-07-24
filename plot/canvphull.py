@@ -25,7 +25,7 @@ import matplotlib.tri as mtri
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0718_preliminary.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, '0719_preliminary.json'))
 # For further use. Currently not MP compatible.
 # MP_DIR = os.path.join(DATA_DIR, '0414_MP.json')
 

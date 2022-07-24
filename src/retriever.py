@@ -366,6 +366,8 @@ class vasp_retriever(object):
                 # May has better way.
                 self.errors.append("Non-neutral")
 
+        # Need to add non-solved ox error.
+
         return structure
 
     def get_stress_tensor(self) -> dict:

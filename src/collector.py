@@ -45,6 +45,27 @@ def main(calc_dir) -> None:
     return
 
 
+def get_all_magmoms(calc_dir) -> None:
+    """
+    Just collecting all the magnetic moments of V.
+    """
+    magmomjson = os.path.join(calc_dir, 'magmom.json')
+    magmomlist = []
+    # Get setup files for generated folder.
+    spec_list = glob(calc_dir + "/*/")
+    for i in spec_list:
+        detailed_spec_list = glob(i + "*/")
+        for j in detailed_spec_list:
+            # Only ground state and it's HE variances.
+            if str(0) in j.split("/")[-2]:
+                print(j)
+                vr = vasp_retriever(os.path.join(j, 'U'))
+                magmomlist.append(vr.get_magnetic_moment())
+
+    magmomdict = {"magmom": magmomlist}
+    write_json(magmomdict, magmomjson)
+
+
 if __name__ == '__main__':
 
-    main("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
+    get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
