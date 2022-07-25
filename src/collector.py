@@ -50,7 +50,8 @@ def get_all_magmoms(calc_dir) -> None:
     Just collecting all the magnetic moments of V.
     """
     magmomjson = os.path.join(calc_dir, 'magmom.json')
-    magmomlist = []
+    magmomdict = {}
+
     # Get setup files for generated folder.
     spec_list = glob(calc_dir + "/*/")
     for i in spec_list:
@@ -60,9 +61,9 @@ def get_all_magmoms(calc_dir) -> None:
             if str(0) in j.split("/")[-2]:
                 print(j)
                 vr = vasp_retriever(os.path.join(j, 'U'))
-                magmomlist.append(vr.get_magnetic_moment())
+                magmomlist = vr.get_magnetic_moment()
+                magmomdict[j] = magmomlist
 
-    magmomdict = {"magmom": magmomlist}
     write_json(magmomdict, magmomjson)
 
 
