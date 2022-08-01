@@ -1,6 +1,7 @@
 import os
 import warnings
 import argparse
+from glob import glob
 from subprocess import call
 from pymatgen.core.structure import Structure
 from src.setter import PoscarGen, InputGen, read_json
@@ -73,6 +74,7 @@ class launcher(object):
 
     def launch_jobs(self) -> None:
 
+        """
         for i in self.resultjson:
             if not self.resultjson[i]["convergence"]:
                 os.chdir(self.resultjson[i]["directory"])
@@ -81,7 +83,7 @@ class launcher(object):
                             self.resultjson[i]["directory"], self.option, self.continuous)
                     inputgenerator.at_once()
                 call(['sbatch', 'job.sh'])
-                print("{} launched".format(self.resultjson[i]))
+                print("{} launched".format(self.resultjson[i]["directory"]))
             elif len(self.resultjson[i]["errors"]) > 0:
                 os.chdir(self.resultjson[i]["directory"])
                 if self.input:
@@ -89,7 +91,28 @@ class launcher(object):
                             self.resultjson[i]["directory"], self.option, False)
                     inputgenerator.at_once()
                 call(['sbatch', 'job.sh'])
-                print("{} launched".format(self.resultjson[i]))
+                print("{} launched".format(self.resultjson[i]["directory"]))
+        """
+
+        count = 0
+        spec_list = glob(self.calc_dir + "/*/")
+        for i in spec_list:
+            detailed_spec_list = glob(i + "*/")
+            for j in detailed_spec_list:
+                # Only ground state and it's HE variances.
+                if str(1) in j.split("/")[-2]:
+                    count += 1
+                    os.chdir(j)
+                    inputgenerator = InputGen(self.machine,
+                                              self.hpc,
+                                              j,
+                                              self.option,
+                                              False)
+                    inputgenerator.at_once()
+                    call(['sbatch', 'job.sh'])
+                    print("{} launched".format(j))
+
+        print("total {} launched.".format(count))
 
         return
 
