@@ -23,9 +23,11 @@ from compmatscipy.PullMP import PullMP
 import itertools
 import matplotlib.tri as mtri
 
+from plot.ternary_chempo import ternary_chempo
+
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0719_preliminary.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, '0725_ce_fitting_on_preliminary.json'))
 # For further use. Currently not MP compatible.
 # MP_DIR = os.path.join(DATA_DIR, '0414_MP.json')
 
@@ -33,11 +35,11 @@ vasp_data = read_json(os.path.join(DATA_DIR, '0719_preliminary.json'))
 # https://github.com/materialsproject/pymatgen/blob/master/pymatgen/entries/MP2020Compatibility.yaml
 # Chemical potential is from stable compounds in MP. (eV/atom)
 V_corr, O_corr = -1.7, -0.687
-mus =  {'Ca': -1.9985,
-        'Na': -1.3122,
-        'V': -9.0824 - V_corr,
-        'P': -5.4133,
-        'O': -4.9480 - O_corr}
+mus = {'Ca': -1.9985,
+       'Na': -1.3122,
+       'V': -9.0824 - V_corr,
+       'P': -5.4133,
+       'O': -4.9480 - O_corr}
 
 
 def polish_data() -> dict:
@@ -318,15 +320,15 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     y = np.asarray(y)
     z = np.asarray(z)
     T = mtri.Triangulation(x, y)
-    ax = plt.tricontourf(x, y, T.triangles, z, levels=15, cmap='plasma_r', alpha=1, zorder=1)
+    ax = plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1)
 
     cmap = 'plasma_r'
     vmin = 0
-    vmax = 1000
+    vmax = max(z)
     label = r'$\Delta$' + r'$\it{E}_{d}$' + r'$\/(\frac{meV}{V_{2}(PO_{4})_{3}})$'
-    ticks = (0, 200, 400, 600, 800, 1000)
+    ticks = np.arange(0, vmax, 100)
     position = (0.85, 0.22, 0.04, 0.55)
-    label_size = 15
+    label_size = 10
     tick_size = 13
     tick_len = 2.5
     tick_width = 1
@@ -339,12 +341,35 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     cb.set_ticks(ticks)
     cb.ax.set_yticklabels(ticks)
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
+
     ax = plt.show()
+
+    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/0725_dftfitting_ternaryPD.png")
 
     return ax, x, y, z
 
 
+def test_get_triangles():
+
+    stable_list = []
+    triangles = {}
+    hull_data, line_data = get_hull_data(convert_data(vasp_data))
+    for i in hull_data:
+        if hull_data[i]['stability'] and i not in ['Ca', 'O', 'Na', 'P', 'V']:
+            stable_list.append(i)
+
+    return stable_list
+
+
 if __name__ == '__main__':
     set_rc_params()
-    a, b = get_hull_data(convert_data(polish_data()))
-    ternary_pd(a, b)
+    vasp_data = convert_data(vasp_data)
+    hull_data, line_data = get_hull_data(vasp_data)
+
+    polished_line_data = []
+    for i in line_data:
+        polished_line_data.append(line_data[i]['cmpds'])
+    tc = ternary_chempo(polished_line_data, vasp_data)
+    chempo_data = tc.get_chempo_at_cycles()
+
+    ternary_pd(hull_data, line_data)
