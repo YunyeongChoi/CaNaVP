@@ -1,38 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 18 2022
+Created on Thu Aug 25 2022
 
 @author: yun
-@purpose: Plotting CaNaVP ternary phase diagram.
+@purpose: Plotting CaNaVP ternary phase diagram from eci and wragler.
 """
 
 import os
-import json
+import pickle
+import itertools
+import argparse
 import numpy as np
-from src.setter import read_json, write_json
-from compmatscipy.handy_functions import H_from_E
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from pymatgen.core.structure import Structure
+import matplotlib.tri as mtri
+from smol.cofe.wrangling.wrangler import StructureWrangler
+from compmatscipy.handy_functions import H_from_E, read_json
 from compmatscipy.plotting_functions import tableau_colors
-from pymatgen.core.composition import Composition
 from compmatscipy.CompAnalyzer import CompAnalyzer
 from compmatscipy.HullAnalysis import AnalyzeHull, GetHullInputData
-from compmatscipy.PullMP import PullMP
-import itertools
-import matplotlib.tri as mtri
-import pickle
 
-from plot.ternary_chempo import ternary_chempo
-
-FIG_DIR = os.getcwd()
-DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0725_ce_fitting_on_preliminary.json'))
-filename = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_mu2_0.0005_NonZero-101_group'
-test = pickle.load(open(filename, "rb"))
-# For further use. Currently not MP compatible.
-# MP_DIR = os.path.join(DATA_DIR, '0414_MP.json')
+DATA_DIR = ''
+eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_gs'
+wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/prelim_canvp_ce.json'
 
 # Correction values are based on MP2020Compatibility.yaml (+U setting)
 # https://github.com/materialsproject/pymatgen/blob/master/pymatgen/entries/MP2020Compatibility.yaml
@@ -45,26 +36,41 @@ mus = {'Ca': -1.9985,
        'O': -4.9480 - O_corr}
 
 
-def polish_data() -> dict:
+def get_fitted_energies(ecifile, wranglerfile) -> dict:
     """
-    Polishing data to the form of {'Structure formula': [energy_list]}.
+    Args:
+        ecifile: ECI filename in string format. Load ECI using pickle.
+        wranglerfile: Subspace filename in string format.
+    Returns:
+        Energy dictionary, {"Structure.formula": list[float]}
+        energy unit is eV / atom.
     """
-    polished_dict = {}
+    eci = pickle.load(open(ecifile, 'rb'))
+    wrangler = StructureWrangler.from_dict(read_json(wranglerfile))
 
-    for i in vasp_data:
-        if vasp_data[i]['convergence'] and len(vasp_data[i]['errors']) == 0:
-            contcar = Structure.from_dict(json.loads(vasp_data[i]['contcar']))
-            key = contcar.formula
-            if not key in polished_dict:
-                polished_dict[key] = []
-            polished_dict[key].append(vasp_data[i]['energy'])
+    fitted_energy = {}
+    for entry in wrangler.entries:
+        try:
+            ce_energy = eci @ entry.data['correlations'] * entry.data['size'] / \
+                        entry.structure.num_sites
+        except ValueError:
+            print("{} cannot be matched. Check wrangler data".format(entry.structure.formula))
+            continue
 
-    return polished_dict
+        if entry.structure.formula not in fitted_energy:
+            fitted_energy[entry.structure.formula] = [ce_energy]
+        else:
+            fitted_energy[entry.structure.formula].append(ce_energy)
+
+    return fitted_energy
 
 
-def convert_data(d):
+def convert_data(d) -> dict:
     """
-    Convert polished raw data to {std_formula (based on CompAnalyzer) : energy per atom}
+    Args:
+        d: dictionary with form {"Structure.formula": list[float]}
+    Returns:
+        dictionary with form {CompAnalyzer.std_formula : energy per atom}
     """
     converted_data = {}
     for keys in d:
@@ -75,9 +81,11 @@ def convert_data(d):
 
 def get_hull_data(d, remake=True) -> (dict, dict):
     """
-    :param d: converted data want to generate hull.
-    :param remake: remake data or get from saved data.
-    :return: First is hull data, second is hull line data.
+    Args:
+        d: dictionary with form {CompAnalyzer.std_formula : energy per atom}
+        remake: remake data or get from saved data.
+    Returns:
+        tuple(dict, dict). hull data and line data.
     """
     fjson_hull = os.path.join(DATA_DIR, 'hull.json')
     fjson_line = os.path.join(DATA_DIR, 'line.json')
@@ -116,7 +124,7 @@ def get_hull_data(d, remake=True) -> (dict, dict):
 def triangle_boundary():
     """
     Args:
-
+        None.
     Returns:
         the boundary of a triangle where each axis goes 0 to 1
     """
@@ -138,41 +146,39 @@ def triangle_to_square(pt):
         pt (tuple) - (left, top, right) triangle point
                 e.g., (1, 0, 0) is left corner
                 e.g., (0, 1, 0) is top corner
-
     Returns:
         pt (tuple) - (x, y) same point in 2D space
     """
     converter = np.array([[1, 0], [0.5, np.sqrt(3) / 2]])
     new_pt = np.dot(np.array(pt[:2]), converter)
+
     return new_pt.transpose()
 
 
 def cmpd_to_pt_canvp(cmpd, square=False):
     """
-    Tentative function only works for CaNaVP system
-
+    Tentative function only works for CaNaVP system.
     """
     ca = CompAnalyzer(cmpd)
     reduced_ratio = 72 / (ca.amt_of_el('O'))
-    Ca_ratio = ca.amt_of_el('Ca') * reduced_ratio / 9
-    Na_ratio = ca.amt_of_el('Na') * reduced_ratio / 18
-    pt = [Ca_ratio, Na_ratio, 1 - Ca_ratio - Na_ratio]
-    if square == False:
+    ca_ratio = ca.amt_of_el('Ca') * reduced_ratio / 9
+    na_ratio = ca.amt_of_el('Na') * reduced_ratio / 18
+    pt = [ca_ratio, na_ratio, 1 - ca_ratio - na_ratio]
+    if not square:
         return pt
     else:
         return triangle_to_square(tuple(pt))
 
 
-def convert_comp_to_content(cmpd, square=False):
+def convert_comp_to_content(cmpd):
     """
-    Tentative function only works for CaNaVP system
-
+    Tentative function only works for CaNaVP system.
     """
     ca = CompAnalyzer(cmpd)
     reduced_ratio = (ca.amt_of_el('O')) / 12
-    Ca = ca.amt_of_el('Ca') / reduced_ratio
-    Na = ca.amt_of_el('Na') / reduced_ratio
-    pt = np.array([Ca, Na, 17])
+    ca_number = ca.amt_of_el('Ca') / reduced_ratio
+    na_number = ca.amt_of_el('Na') / reduced_ratio
+    pt = np.array([ca_number, na_number, 17])
     tot = np.sum(pt)
 
     return pt, tot
@@ -198,59 +204,7 @@ def unique_lines(q):
     return setoflines
 
 
-def params():
-    """
-    Args:
-
-    Returns:
-        just colors for stable and unstable points
-    """
-    return {'stable': {'c': tableau_colors()['blue'],
-                       'm': 'o',
-                       'alpha': 1},
-            'unstable': {'c': tableau_colors()['red'],
-                         'm': '^',
-                         'alpha': 0.0}}
-
-
-def set_rc_params():
-    """
-    General params for plot.
-    """
-    params = {'axes.linewidth': 1.5,
-              'axes.unicode_minus': False,
-              'figure.dpi': 300,
-              'font.size': 25,
-              'legend.frameon': False,
-              'legend.handletextpad': 0.4,
-              'legend.handlelength': 1,
-              'legend.fontsize': 10,
-              'lines.markeredgewidth': 4,
-              'lines.linewidth': 3,
-              'lines.markersize': 15,
-              'mathtext.default': 'regular',
-              'savefig.bbox': 'tight',
-              'xtick.labelsize': 20,
-              'ytick.labelsize': 20,
-              'xtick.major.size': 5,
-              'xtick.minor.size': 3,
-              'ytick.major.size': 5,
-              'ytick.minor.size': 3,
-              'xtick.major.width': 1,
-              'xtick.minor.width': 0.5,
-              'ytick.major.width': 1,
-              'ytick.minor.width': 0.5,
-              'xtick.top': True,
-              'ytick.right': True,
-              'axes.edgecolor': 'black',
-              'legend.fancybox': True,
-              'figure.figsize': [8, 6]}
-    for p in params:
-        mpl.rcParams[p] = params[p]
-
-
-def ternary_pd(hull_data, line_data, option='decompose'):
-
+def ternary_pd(hull_data, line_data, save_path, option='decompose'):
     fig = plt.figure(dpi=300)
 
     lines = triangle_boundary()
@@ -345,37 +299,82 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     cb.ax.set_yticklabels(ticks)
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
-    ax = plt.show()
-
-    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/0725_dftfitting_ternaryPD.png")
+    # ax = plt.show()
+    fig.savefig(save_path)
 
     return ax, x, y, z
 
 
-def test_get_triangles():
+# Functions for plot setting
 
-    stable_list = []
-    triangles = {}
-    hull_data, line_data = get_hull_data(convert_data(vasp_data))
-    for i in hull_data:
-        if hull_data[i]['stability'] and i not in ['Ca', 'O', 'Na', 'P', 'V']:
-            stable_list.append(i)
+def params():
+    """
+    Args:
+        None.
+    Returns:
+        just colors for stable and unstable points
+    """
+    return {'stable': {'c': tableau_colors()['blue'],
+                       'm': 'o',
+                       'alpha': 1},
+            'unstable': {'c': tableau_colors()['red'],
+                         'm': '^',
+                         'alpha': 0.0}}
 
-    return stable_list
+
+def set_rc_params():
+    """
+    General params for plot.
+    """
+    params = {'axes.linewidth': 1.5,
+              'axes.unicode_minus': False,
+              'figure.dpi': 300,
+              'font.size': 25,
+              'legend.frameon': False,
+              'legend.handletextpad': 0.4,
+              'legend.handlelength': 1,
+              'legend.fontsize': 10,
+              'lines.markeredgewidth': 4,
+              'lines.linewidth': 3,
+              'lines.markersize': 15,
+              'mathtext.default': 'regular',
+              'savefig.bbox': 'tight',
+              'xtick.labelsize': 20,
+              'ytick.labelsize': 20,
+              'xtick.major.size': 5,
+              'xtick.minor.size': 3,
+              'ytick.major.size': 5,
+              'ytick.minor.size': 3,
+              'xtick.major.width': 1,
+              'xtick.minor.width': 0.5,
+              'ytick.major.width': 1,
+              'ytick.minor.width': 0.5,
+              'xtick.top': True,
+              'ytick.right': True,
+              'axes.edgecolor': 'black',
+              'legend.fancybox': True,
+              'figure.figsize': [8, 6]}
+    for p in params:
+        mpl.rcParams[p] = params[p]
+
+
+def main(eci_path, wrangler_path, save_path):
+    set_rc_params()
+    ce_fitted_energy = get_fitted_energies(eci_path, wrangler_path)
+    hull, line = get_hull_data(convert_data(ce_fitted_energy))
+    ternary_pd(hull, line, save_path)
 
 
 if __name__ == '__main__':
-    print(test)
     """
-    set_rc_params()
-    vasp_data = convert_data(vasp_data)
-    hull_data, line_data = get_hull_data(vasp_data)
-
-    polished_line_data = []
-    for i in line_data:
-        polished_line_data.append(line_data[i]['cmpds'])
-    tc = ternary_chempo(polished_line_data, vasp_data)
-    chempo_data = tc.get_chempo_at_cycles()
-
-    #ternary_pd(hull_data, line_data)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', type=str, required=False, default='',
+                        help="ECI file path.")
+    parser.add_argument('-w', type=str, required=False, default='',
+                        help="Wrangler file path.")
+    parser.add_argument('-o', type=str, required=False, default='fast',
+                        help="Plot file path to save.")
+    args = parser.parse_args()
+    main(args.e, args.w, args.o)
     """
+    main(eci_path, wrangler_path, './cetest_png')

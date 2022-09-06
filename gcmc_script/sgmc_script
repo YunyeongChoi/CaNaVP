@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug 26 2022
+
+@author: yun
+@purpose: Short script to generate job gcmc_script for submission.
+"""
+
+import os
+import time
+import json
+import random
+import numpy as np
+from copy import deepcopy
+from smol.io import load_work
+from smol.cofe.space import Vacancy
+from smol.moca.sampler.mcusher import Tableflip
+from pymatgen.core.sites import Species
+from pymatgen.core.structure import Structure
+from pymatgen.transformations.standard_transformations \
+import (OxidationStateDecorationTransformation, \
+        OrderDisorderedStructureTransformation)
+
+
+class sgmc_script:
+
+    def __init__(self, initial_structure, na_range, ca_range):
+        """
+        Args:
+            initial_structure: pymatgen.core.structure, ordered supercell.
+            na_range: np.array, array of na chemical potential to search.
+            ca_range: np.array, array of ca chemical potential to search.
+        """
+        self.initial_structure = initial_structure
+        self.na_range = na_range
+        self.ca_range = ca_range
+
+    def splitter(self, max_number):
+        """
+        Args:
+            max_number: int, max_number of mc run to run at one node.
+        Returns:
+            List[List[tuple]]
+        Split (na, ca) into lists that not length not exceed max_number.
+        """
+
+        return
+
+    def get_jobname(self, N):
+
+        import string
+
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+
+    def write_script(self,
+                     nodes=1,
+                     account='co_condoceder',
+                     qos='savio_lowprio',
+                     partition='savio3',
+                     walltime='12:00:00',
+                     err_file='log.e',
+                     out_file='log.o'):
+        """
+        Args:
+
+        Returns:
+
+        There will be a cleaner way to write a script...
+        scripter class maybe?
+        Currently only offer option for savio.
+        """
+        ntasks = nodes * 32
+
+        options = {'error': err_file, 'out': out_file, 'time': walltime, 'nodes': nodes,
+                   'ntasks': ntasks, 'job-name': self.get_jobname, 'account': account,
+                   'partition': partition, 'qos': qos}
+
+        launch_line = '    mpirun -n {} python target.py > result.txt\n'.format(ntasks)
+
+        fsub = os.path.join(self.calc_dir, 'job.sh')
+
+        line1 = '#!/bin/bash\n'
+        with open(fsub, 'w') as f:
+            f.write(line1)
+            for tag in options:
+                option = options[tag]
+                if option:
+                    option = str(option)
+                    f.write('%s --%s=%s\n' % ('#SBATCH', tag, option))
+            f.write('\n')
+
+        return
+
+    def main(self):
+
+        return
+
+    def errors(self):
+
+        return
+
+
+if __name__ == '__main__':
+
+    print('something')
