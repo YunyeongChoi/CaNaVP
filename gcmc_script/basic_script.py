@@ -22,6 +22,3 @@ from pymatgen.transformations.standard_transformations \
 import (OxidationStateDecorationTransformation, \
         OrderDisorderedStructureTransformation)
 
-
-class job:
-
