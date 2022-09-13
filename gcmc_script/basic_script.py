@@ -29,10 +29,10 @@ class cnsgmcRunner:
         self.na_amt = na_amt
         self.ca_dmu = ca_dmu
         if self.ca_dmu is None:
-            self.ca_dmu = [-6]
+            self.ca_dmu = [-6.0]
         self.na_dmu = na_dmu
-        if self.na_dmu in None:
-            self.na_dmu = [-6, -5]
+        if self.na_dmu is None:
+            self.na_dmu = [-6.0, -5.0]
         self.savename = savename
         self.savepath = savepath
         if self.savepath is None:
@@ -46,9 +46,9 @@ class cnsgmcRunner:
                 raise ValueError("Check directory.")
             else:
                 if self.savename is None:
-                    self.savepath = os.path.join(savepath, "test_samples.mson")
+                    self.savepath = os.path.join(self.savepath, "test_samples.mson")
                 else:
-                    self.savepath = os.path.join(savepath, self.savename)
+                    self.savepath = os.path.join(self.savepath, self.savename)
         self.ce_file_path = ce_file_path
         self.ensemble_file_path = ensemble_file_path
         self.temperature = temperature
@@ -129,7 +129,14 @@ def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
     discard, thin_by = 50, 10
     temperature = 300
 
-    runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, ca_dmu=ca_dmu, na_dmu=na_dmu,
+    ca_dmu_float = []
+    for i in ca_dmu:
+        ca_dmu_float.append(float(''.join(i)))
+    na_dmu_float = []
+    for i in ca_dmu:
+        na_dmu_float.append(float(''.join(i)))
+
+    runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, ca_dmu=ca_dmu_float, na_dmu=na_dmu_float,
                           ce_file_path=ce_file_path, ensemble_file_path=ensemble_file_path)
     runner.running()
 
@@ -139,13 +146,13 @@ def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-ca_amt', type=float, required=False, default=0.5,
+    parser.add_argument('--ca_amt', type=float, required=False, default=0.5,
                         help="Amount of Ca in initial structure.")
-    parser.add_argument('-na_amt', type=float, required=False, default=0.5,
+    parser.add_argument('--na_amt', type=float, required=False, default=0.5,
                         help="Amount of Na in initial structure.")
-    parser.add_argument('-ca_dmu', type=list, required=False, default=None,
+    parser.add_argument('--ca_dmu', nargs="+", type=list, required=False, default=None,
                         help="List of Ca chemical potentials.")
-    parser.add_argument('-na_dmu', type=list, required=False, default=None,
+    parser.add_argument('--na_dmu', nargs="+", type=list, required=False, default=None,
                         help="List of Na chemiocal potentials.")
     args = parser.parse_args()
     main(args.ca_amt, args.na_amt, args.ca_dmu, args.na_dmu)
