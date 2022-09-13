@@ -9,35 +9,20 @@ Created on Thu Aug 26 2022
 
 import os
 import time
-import json
-import random
 import numpy as np
 from copy import deepcopy
 from smol.io import load_work
 from smol.moca import Sampler
-from smol.cofe.space import Vacancy
-from smol.moca.sampler.mcusher import Tableflip
-from pymatgen.core.sites import Species
 from monty.serialization import dumpfn, loadfn
-from pymatgen.core.structure import Structure
-from pymatgen.transformations.standard_transformations \
-import (OxidationStateDecorationTransformation, \
-        OrderDisorderedStructureTransformation)
-
 from src.setter import PoscarGen
-
-# Input - sc_matrix, chemical potential
-# Output - save sample after 5,000,000 runs.
-# Expected Errors - different table flip.
 
 MACHINE = "savio"
 
 
-def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, savename=None,
+def running(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None, savepath=None, savename=None,
             ce_file_path='', ensemble_file_path='', temperature=300, thin_by=10):
-
     if na_dmu is None:
-        na_dmu = [-6]
+        na_dmu = [-6, -5]
     if ca_dmu is None:
         ca_dmu = [-6]
     if savepath is None:
@@ -57,15 +42,8 @@ def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, sav
 
     start = time.time()
     ensemble = loadfn(ensemble_file_path)
-    init_struct= initialized_structure(ce_file_path)
-    init_struct.to("POSCAR",
-            "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/POSCAR")
+    init_struct = initialized_structure(ce_file_path, ca_amt, na_amt)
     init_occu = ensemble.processor.occupancy_from_structure(init_struct)
-
-    # Initializing sampler.
-    sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
-                                    temperature=temperature, optimize_basis=True)
-    print(f"Sampling information: {sampler.samples.metadata}\n")
     end = time.time()
     print(f"{end - start}s for initialization.\n")
 
@@ -74,7 +52,11 @@ def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, sav
             chemical_potentials = {'Na+': j, 'Ca2+': i, 'Vacancy': 0, 'V3+': 0, 'V4+': 0,
                                    'V5+': 0}
             ensemble.chemical_potentials = chemical_potentials
-            sampler.run(10000, init_occu, thin_by=thin_by, progress=True)
+            # Initializing sampler.
+            sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
+                                            temperature=temperature, optimize_basis=True)
+            print(f"Sampling information: {sampler.samples.metadata}\n")
+            sampler.run(100000, init_occu, thin_by=thin_by, progress=True)
             sampler.samples.metadata['flip_reaction'] = \
                 sampler.mckernels[0].mcusher._compspace.flip_reactions
 
@@ -86,8 +68,7 @@ def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, sav
     return
 
 
-def initialized_structure(ce_file_path, ca_amt=1.5, na_amt=0):
-
+def initialized_structure(ce_file_path, ca_amt=1.5, na_amt=0.0):
     expansion = load_work(ce_file_path)['ClusterExpansion']
     prim_cell = deepcopy(expansion.structure)
     intermediate_sc_matrix = np.array([[3, 0, 0],
@@ -121,7 +102,6 @@ def initialized_structure(ce_file_path, ca_amt=1.5, na_amt=0):
 
 
 def main():
-
     ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/0728_canvp_ce' \
                    '.mson'
     ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/' \
@@ -138,7 +118,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
-
-
