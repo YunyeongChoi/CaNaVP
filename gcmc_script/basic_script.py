@@ -30,11 +30,11 @@ from src.setter import PoscarGen
 # Output - save sample after 5,000,000 runs.
 # Expected Errors - different table flip.
 
-MACHINE = "yun"
+MACHINE = "savio"
 
 
 def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, savename=None,
-            ensemble_file_path='', temperature=300, thin_by=10):
+            ce_file_path='', ensemble_file_path='', temperature=300, thin_by=10):
 
     if na_dmu is None:
         na_dmu = [-6]
@@ -57,7 +57,11 @@ def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, sav
 
     start = time.time()
     ensemble = loadfn(ensemble_file_path)
-    init_occu, charge = initialized_structure()
+    init_struct= initialized_structure(ce_file_path)
+    init_struct.to("POSCAR",
+            "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/POSCAR")
+    print(init_struct)
+    init_occu = ensemble.processor.occupancy_from_structure(init_struct)
 
     # Initializing sampler.
     sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
@@ -120,7 +124,7 @@ def initialized_structure(ce_file_path, ca_amt=1.5, na_amt=0):
 def main():
 
     ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/0728_canvp_ce' \
-                   '.mson '
+                   '.mson'
     ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/' \
                          '0825_0728_canvp_ensemble.mson'
     sc_matrix = np.array([[3, 0, 0],
@@ -129,7 +133,7 @@ def main():
     discard, thin_by = 50, 10
     temperature = 300
 
-    running(0.5, 0.5, ensemble_file_path=ensemble_file_path)
+    running(0.5, 0.5, ce_file_path=ce_file_path, ensemble_file_path=ensemble_file_path)
 
     return
 
