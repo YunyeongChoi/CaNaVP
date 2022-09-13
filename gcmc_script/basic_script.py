@@ -60,7 +60,6 @@ def running(ca_amt=1/3, na_amt=1/6, ca_dmu=None, na_dmu=None, savepath=None, sav
     init_struct= initialized_structure(ce_file_path)
     init_struct.to("POSCAR",
             "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/POSCAR")
-    print(init_struct)
     init_occu = ensemble.processor.occupancy_from_structure(init_struct)
 
     # Initializing sampler.
@@ -126,7 +125,7 @@ def main():
     ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/0728_canvp_ce' \
                    '.mson'
     ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/' \
-                         '0825_0728_canvp_ensemble.mson'
+                         '0913_0728_canvp_ensemble.mson'
     sc_matrix = np.array([[3, 0, 0],
                           [0, 4, 0],
                           [0, 0, 5]])
