@@ -10,11 +10,9 @@ import os
 import json
 import random
 import warnings
-import argparse
 import numpy as np
 from glob import glob
 from copy import deepcopy
-from subprocess import call
 
 # Pymatgen import
 from pymatgen.core.structure import Structure
@@ -25,10 +23,10 @@ from pymatgen.transformations.standard_transformations import (
     OrderDisorderedStructureTransformation, OxidationStateDecorationTransformation)
 
 # Compmatscipy import https://github.com/CJBartel/compmatscipy
-from compmatscipy.CompAnalyzer import CompAnalyzer
-from compmatscipy.HelpWithVASP import VASPSetUp, VASPBasicAnalysis, JobSubmission, magnetic_els
+from compmatscipy.HelpWithVASP import VASPSetUp
 
-__basestructure__ = os.path.join(os.getcwd().replace("src", "setup"), "Na4V2(PO4)3_POSCAR")
+__setupdir__ = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
+__basestructure__ = os.path.join(__setupdir__, "Na4V2(PO4)3_POSCAR")
 
 
 def read_json(fjson):
@@ -48,14 +46,22 @@ class NasiconSite(PeriodicSite):
     """
     Inherit Pymatgen.core.sites.PeriodicSite class.
     Adding neighbor, site information in base NASICON lattice.
+    Args:
+        site: Pymatgen.core.sites.PeriodicSite Object want to change as NascionSite Object.
+        basestructure: Base NASICON structure want to use. If None get the basic NASICON structure
+        from setup directory. basestructure need to have Na in all available cation sites, and V in
+        all available TM sites. No oxidation decoration on Na and V.
     """
 
     # Basestructuredir = os.path.join(os.getcwd(), "Na4V2(PO4)3_POSCAR")
 
-    def __init__(self, site):
+    def __init__(self, site, basestructure=None):
 
         super().__init__(site.species, site.frac_coords, site.lattice)
-        self.basestructure = Structure.from_file(__basestructure__)
+        if basestructure is None:
+            self.basestructure = Structure.from_file(__basestructure__)
+        else:
+            self.basestructure = basestructure
         self.neighbor = self.find_neigbors()
         self.isbsite = self.classify_site()
 
@@ -92,11 +98,16 @@ class NasiconStructure(Structure):
     Inherite pymatgen.core.structure.Structure class.
     classfy cations in structures to 6b, 18e sites.
     Each site is NasiconSite object.
-    * test classification
-    * Need to clean siteinfo. There'll be cleaner way.
+    TODO test classification on more structure.
+    TODO Need to clean siteinfo. There'll be cleaner way.
+    Args:
+        structure: pymatgen.core.structure.Structure Object want to change as NasiconStructure
+        Object.
+        basestructure: Base NASICON structure want to use. If None get the basic NASICON structure
+        from setup directory.
     """
 
-    def __init__(self, structure):
+    def __init__(self, structure, basestructure=None):
 
         super().__init__(structure.lattice, structure.species, structure.frac_coords,
                          structure.charge, False, False, False, None)
@@ -104,7 +115,10 @@ class NasiconStructure(Structure):
         self.siteinfo = {'b': {'Ca': {}, 'Na': {}},
                          'e': {'Ca': {}, 'Na': {}},
                          'v': {}}
-        self.basestructure = Structure.from_file(__basestructure__)
+        if basestructure is None:
+            self.basestructure = Structure.from_file(__basestructure__)
+        else:
+            self.basestructure = basestructure
         self.update_sites(structure)
         # self.classify_sites()
 
@@ -115,17 +129,20 @@ class NasiconStructure(Structure):
         c_ratio = int(structure.lattice.c / self.basestructure.lattice.c)
 
         self.basestructure.make_supercell([a_ratio, b_ratio, c_ratio])
+        # This is same as self.basestructure, but sites are not NasiconSites object.
+        # Very lazy way.
+        retained_structure = deepcopy(self.basestructure)
 
         # Need to update supercell case for NasiconSite class
         for i, j in enumerate(self.basestructure):
-            nasiconinfo = NasiconSite(j)
+            nasiconinfo = NasiconSite(j, retained_structure)
             self.basestructure[i] = nasiconinfo
 
         # Updating PerodicSite objects to NasiconSite objects.
         for i, site in enumerate(structure):
             for j, base_site in enumerate(self.basestructure):
                 if np.allclose(site.frac_coords, base_site.frac_coords):
-                    self[i] = NasiconSite(self[i])
+                    self[i] = NasiconSite(self[i], retained_structure)
                     if base_site.isbsite:
                         if site.specie.name == 'Ca':
                             self.siteinfo['b']['Ca'][i] = (j, base_site.frac_coords)
@@ -156,15 +173,23 @@ class PoscarGen(object):
     SAVE_DIR?
     Should make structure info file (json) at the end of directory.
     Include b site information, neighbors.
+    Args:
+        basestructure: Base NASICON structure want to use. If None get the basic NASICON structure
+        from setup directory.
+        calc_dir: Calculation directory that POSCARs will be saved.
     """
 
     # Set oxidation States for atoms.
     ox_states = {'Ca': 2, 'Na': 1, 'P': 5, 'Ni': 3, 'Mn': 4, 'Cr': 5, 'O': -2}
 
-    def __init__(self, calc_dir="/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test"):
+    def __init__(self, basestructure=None,
+                 calc_dir="/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test"):
 
-        self.basestructure = Structure.from_file(__basestructure__)
-        self.decoratedstructure = NasiconStructure(self.basestructure)
+        if basestructure is None:
+            self.basestructure = Structure.from_file(__basestructure__)
+        else:
+            self.basestructure = basestructure
+        self.decoratedstructure = NasiconStructure(self.basestructure, self.basestructure)
         self.calc_dir = calc_dir
 
     def get_disordered_structure(self, x, y) -> Structure:

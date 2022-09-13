@@ -51,6 +51,13 @@ class sgmcScriptor:
 
         return
 
+    def initialization(self):
+        """
+        initializing a structure with OrderDisorderStructureTransfromation.
+        """
+
+        return
+
     def get_jobname(self, N):
 
         import string
@@ -159,9 +166,9 @@ class ScriptWriter(metaclass=ABCMeta):
         return self._walltime
 
     @walltime.setter
-    def walltime(self, time):
-        self._walltime = time
-        self.options = {"walltime": time}
+    def walltime(self, caltime):
+        self._walltime = caltime
+        self.options = {"walltime": caltime}
 
     @property
     def err_file(self):
@@ -186,7 +193,6 @@ class ScriptWriter(metaclass=ABCMeta):
         """
         Line for execute script.
         """
-
         return
 
     @abstractmethod
@@ -194,7 +200,6 @@ class ScriptWriter(metaclass=ABCMeta):
         """
         Write a script in a target directory.
         """
-
         return
 
 

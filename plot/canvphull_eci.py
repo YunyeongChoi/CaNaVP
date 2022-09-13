@@ -256,7 +256,7 @@ def ternary_pd(hull_data, line_data, save_path, option='decompose'):
         x = (xy[0][0], xy[1][0])
         y = (xy[0][1], xy[1][1])
         print(x, y)
-        ax = plt.plot(x, y, zorder=1, lw=1.5, color='black')
+        plt.plot(x, y, zorder=2, lw=1.5, color='black')
 
     x = []
     y = []
