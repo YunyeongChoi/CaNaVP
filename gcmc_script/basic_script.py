@@ -133,7 +133,7 @@ def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
     for i in ca_dmu:
         ca_dmu_float.append(float(''.join(i)))
     na_dmu_float = []
-    for i in ca_dmu:
+    for i in na_dmu:
         na_dmu_float.append(float(''.join(i)))
 
     runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, ca_dmu=ca_dmu_float, na_dmu=na_dmu_float,
