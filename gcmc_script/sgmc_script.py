@@ -29,14 +29,13 @@ import (OxidationStateDecorationTransformation, \
 
 class sgmcScriptor:
 
-    def __init__(self, initial_structure, na_range, ca_range):
+    def __init__(self, na_range, ca_range):
         """
         Args:
             initial_structure: pymatgen.core.structure, ordered supercell.
             na_range: np.array, array of na chemical potential to search.
             ca_range: np.array, array of ca chemical potential to search.
         """
-        self.initial_structure = initial_structure
         self.na_range = na_range
         self.ca_range = ca_range
 
@@ -48,26 +47,49 @@ class sgmcScriptor:
             List[List[tuple]]
         Split (na, ca) into lists that not length not exceed max_number.
         """
+        return_list = []
+        total = len(self.na_range) * len(self.ca_range)
+        count = 0
+        splitted_list = []
+        for i in self.na_range:
+            for j in self.ca_range:
+                count += 1
+                if not count == total:
+                    if not len(splitted_list) >= max_number:
+                        splitted_list.append((i, j))
+                    else:
+                        return_list.append(splitted_list)
+                        splitted_list = [(i, j)]
+                else:
+                    splitted_list.append((i, j))
+                    return_list.append(splitted_list)
 
-        return
+        return return_list
 
-    def initialization(self):
-        """
-        initializing a structure with OrderDisorderStructureTransfromation.
-        """
+    @staticmethod
+    def get_jobname(options):
 
-        return
+        line = []
+        for i in options:
+            line.append(str(options[i]))
 
-    def get_jobname(self, N):
-
-        import string
-
-        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+        return '_'.join(line)
 
     def main(self):
         """
         Write a script.
         """
+        chempo_list = self.splitter(4)
+        for i in chempo_list:
+            ca_list, na_list = [], []
+            ca_list.append()
+
+        python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': [-2, -3, -4],
+                          'na_dmu': [-3, -4, -5]}
+        job_name = self.get_jobname(python_options)
+        a = SavioWriter("python", "/Users/yun/Desktop/github_codes/CaNaVP/job.sh", job_name,
+                        "/Users/yun/Desktop/test.py", python_options)
+        a.write_script()
         return
 
     def errors(self):
@@ -189,6 +211,12 @@ class ScriptWriter(metaclass=ABCMeta):
         self.options = {"out": out_file_name}
 
     @abstractmethod
+    def pythonoptionmaker(self):
+        """
+        Append options to end of the python executing line.
+        """
+
+    @abstractmethod
     def punchline(self):
         """
         Line for execute script.
@@ -205,7 +233,8 @@ class ScriptWriter(metaclass=ABCMeta):
 
 class SavioWriter(ScriptWriter):
 
-    def __init__(self, calculation_type, file_path, job_name):
+    def __init__(self, calculation_type, file_path, job_name, python_script_name=None,
+                 python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
         self._account = 'co_condoceder'
@@ -215,6 +244,14 @@ class SavioWriter(ScriptWriter):
             self.ntasks = 32 * self.node
         self._continuous_option = True
         self.options = {"account": self._account, "partition": self._partition, "qos": self._qos}
+        if self.calculation_type == 'python':
+            self.python_script_name = python_script_name
+            if self.python_script_name is None:
+                raise ValueError("Your script path is needed as an input.")
+            self.python_options = python_options
+            if python_options is None:
+                self.python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': [-2, -3, -4],
+                                       'na_dmu': [-3, -4]}
 
     @property
     def account(self):
@@ -240,13 +277,27 @@ class SavioWriter(ScriptWriter):
     def qos(self, qos_name):
         self._qos = qos_name
 
+    def pythonoptionmaker(self):
+
+        line = ''
+        for i in self.python_options:
+            if type(self.python_options[i]) is not list:
+                line += '--' + i + ' ' + str(self.python_options[i]) + ' '
+            else:
+                line += '--' + i + ' '
+                for j in self.python_options[i]:
+                    line += str(j) + ' '
+
+        return line
+
     def punchline(self):
 
         if self.calculation_type == "python":
-            launch_line = 'module load python\n'
+            launch_line = 'module load python/3.9.12\n'
             # Can be designate env if needed in the future.
             launch_line += 'source activate cn-sgmc\n'
-            launch_line += 'mpirun -n {} python script.py > result.out\n'.format(self._ntasks)
+            launch_line += 'python {} {}> result.out\n'.format(self.python_script_name,
+                                                               self.pythonoptionmaker())
         else:
             launch_line = 'mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4.4_vtst178_' \
                           'with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(self._ntasks)
@@ -326,11 +377,15 @@ class CalculationTypeError(Exception):
 def main():
 
     """
-    This will do all jobs.
-    split, update, write, run.
+    a = SavioWriter("python", "/Users/yun/Desktop/github_codes/CaNaVP/job.sh", "test",
+                    "/Users/yun/Desktop/test.py", None)
+    a.write_script()
     """
+
+    test = sgmcScriptor
+    test.main()
 
 
 if __name__ == '__main__':
 
-    print('something')
+    main()

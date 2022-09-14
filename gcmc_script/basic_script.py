@@ -20,19 +20,20 @@ from src.setter import PoscarGen
 
 class cnsgmcRunner:
 
-    def __init__(self, machine='savio', ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None,
+    def __init__(self, machine='savio', ca_amt=0.5, na_amt=0.5, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
                  temperature=300, discard=50, thin_by=10):
+        """
+        Args:
+            self.dmus: list(tuple). First one of tuple is Na chemical potential.
+        """
 
         self.machine = machine
         self.ca_amt = ca_amt
         self.na_amt = na_amt
-        self.ca_dmu = ca_dmu
-        if self.ca_dmu is None:
-            self.ca_dmu = [-6.0]
-        self.na_dmu = na_dmu
-        if self.na_dmu is None:
-            self.na_dmu = [-6.0, -5.0]
+        self.dmus = dmus
+        if self.dmus is None:
+            self.dmus = [(-6.0, -6.0), (-6.0, -5.0)]
         self.savename = savename
         self.savepath = savepath
         if self.savepath is None:
@@ -64,23 +65,22 @@ class cnsgmcRunner:
         end = time.time()
         print(f"{end - start}s for initialization.\n")
 
-        for i in self.ca_dmu:
-            for j in self.na_dmu:
-                chemical_potentials = {'Na+': j, 'Ca2+': i, 'Vacancy': 0, 'V3+': 0, 'V4+': 0,
-                                       'V5+': 0}
-                ensemble.chemical_potentials = chemical_potentials
-                # Initializing sampler.
-                sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
-                                                temperature=self.temperature, optimize_basis=True)
-                print(f"Sampling information: {sampler.samples.metadata}\n")
-                sampler.run(100000, init_occu, thin_by=self.thin_by, progress=True)
-                sampler.samples.metadata['flip_reaction'] = \
-                    sampler.mckernels[0].mcusher._compspace.flip_reactions
+        for i in self.dmus:
+            chemical_potentials = {'Na+': i[0], 'Ca2+': i[1], 'Vacancy': 0, 'V3+': 0, 'V4+': 0,
+                                   'V5+': 0}
+            ensemble.chemical_potentials = chemical_potentials
+            # Initializing sampler.
+            sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
+                                            temperature=self.temperature, optimize_basis=True)
+            print(f"Sampling information: {sampler.samples.metadata}\n")
+            sampler.run(100000, init_occu, thin_by=self.thin_by, progress=True)
+            sampler.samples.metadata['flip_reaction'] = \
+                sampler.mckernels[0].mcusher._compspace.flip_reactions
 
-                filename = "{}_{}_cn_sgmc.mson".format(i, j)
-                filepath = self.savepath.replace("test_samples.mson", filename)
-                dumpfn(sampler.samples, filepath)
-                print("Ca: {}, Na: {} is done. Check {}\n".format(i, j, filepath))
+            filename = "{}_{}_cn_sgmc.mson".format(i, j)
+            filepath = self.savepath.replace("test_samples.mson", filename)
+            dumpfn(sampler.samples, filepath)
+            print("Ca: {}, Na: {} is done. Check {}\n".format(i, j, filepath))
 
         return
 
@@ -129,14 +129,14 @@ def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
     discard, thin_by = 50, 10
     temperature = 300
 
-    ca_dmu_float = []
-    for i in ca_dmu:
-        ca_dmu_float.append(float(''.join(i)))
-    na_dmu_float = []
-    for i in na_dmu:
-        na_dmu_float.append(float(''.join(i)))
+    # Handling input string list to float list
+    dmus = []
+    if not len(ca_dmu) == len(na_dmu):
+        raise ValueError("Cannot couple chemical potentials. Check input.")
+    for i, j in ca_dmu:
+        dmus.append((float(j), float(na_dmu[i])))
 
-    runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, ca_dmu=ca_dmu_float, na_dmu=na_dmu_float,
+    runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, dmus=dmus,
                           ce_file_path=ce_file_path, ensemble_file_path=ensemble_file_path)
     runner.running()
 
