@@ -11,6 +11,7 @@ Created on Thu Aug 26 2022
 """
 
 import os
+import subprocess
 import numpy as np
 from abc import abstractmethod, ABCMeta
 
@@ -76,17 +77,25 @@ class sgmcScriptor:
                 ca_list.append(j[0])
                 na_list.append(j[1])
 
-            path_directory = os.path.join(self.base_path, str(count))
+            if count < 10:
+                path_directory = os.path.join(self.base_path, str(0) + str(count))
+            else:
+                path_directory = os.path.join(self.base_path, str(count))
             if not os.path.exists(path_directory):
                 os.mkdir(path_directory)
 
             python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': ca_list, 'na_dmu': na_list}
-            job_name = self.get_jobname(python_options)
+            #job_name = self.get_jobname(python_options)
+            job_name = "cn-sgmc_" + str(count)
             a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
                             "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/basic_script.py",
                             python_options)
             a.write_script()
-            return
+            os.chdir(path_directory)
+            subprocess.call(["sbatch", "job.sh"])
+            print("{} launched".format(job_name))
+
+        return
 
     def errors(self):
 

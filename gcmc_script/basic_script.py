@@ -40,7 +40,8 @@ class cnsgmcRunner:
             if self.machine == "yun":
                 self.savepath = '/Users/yun/Desktop/github_codes/CaNaVP/data'
             elif self.machine == "savio":
-                self.savepath = '/global/scratch/users/yychoi94/CaNaVP'
+                self.savepath =
+                '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
             else:
                 raise ValueError("Check Machine option.")
             if not os.path.exists(self.savepath):
@@ -73,7 +74,7 @@ class cnsgmcRunner:
             sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
                                             temperature=self.temperature, optimize_basis=True)
             print(f"Sampling information: {sampler.samples.metadata}\n")
-            sampler.run(100000, init_occu, thin_by=self.thin_by, progress=True)
+            sampler.run(5000000, init_occu, thin_by=self.thin_by, progress=True)
             sampler.samples.metadata['flip_reaction'] = \
                 sampler.mckernels[0].mcusher._compspace.flip_reactions
 
