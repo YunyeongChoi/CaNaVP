@@ -40,8 +40,7 @@ class cnsgmcRunner:
             if self.machine == "yun":
                 self.savepath = '/Users/yun/Desktop/github_codes/CaNaVP/data'
             elif self.machine == "savio":
-                self.savepath =
-                '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
+                self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
             else:
                 raise ValueError("Check Machine option.")
             if not os.path.exists(self.savepath):
