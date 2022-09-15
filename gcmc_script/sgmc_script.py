@@ -11,20 +11,8 @@ Created on Thu Aug 26 2022
 """
 
 import os
-import time
-import json
-import random
-from abc import abstractmethod, ABCMeta
 import numpy as np
-from copy import deepcopy
-from smol.io import load_work
-from smol.cofe.space import Vacancy
-from smol.moca.sampler.mcusher import Tableflip
-from pymatgen.core.sites import Species
-from pymatgen.core.structure import Structure
-from pymatgen.transformations.standard_transformations \
-import (OxidationStateDecorationTransformation, \
-        OrderDisorderedStructureTransformation)
+from abc import abstractmethod, ABCMeta
 
 
 class sgmcScriptor:
@@ -32,12 +20,12 @@ class sgmcScriptor:
     def __init__(self, na_range, ca_range):
         """
         Args:
-            initial_structure: pymatgen.core.structure, ordered supercell.
             na_range: np.array, array of na chemical potential to search.
             ca_range: np.array, array of ca chemical potential to search.
         """
         self.na_range = na_range
         self.ca_range = ca_range
+        self.base_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC"
 
     def splitter(self, max_number):
         """
@@ -80,17 +68,25 @@ class sgmcScriptor:
         Write a script.
         """
         chempo_list = self.splitter(4)
-        for i in chempo_list:
+        count = 0
+        for chempo_set in chempo_list:
+            count += 1
             ca_list, na_list = [], []
-            ca_list.append()
+            for j in chempo_set:
+                ca_list.append(j[0])
+                na_list.append(j[1])
 
-        python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': [-2, -3, -4],
-                          'na_dmu': [-3, -4, -5]}
-        job_name = self.get_jobname(python_options)
-        a = SavioWriter("python", "/Users/yun/Desktop/github_codes/CaNaVP/job.sh", job_name,
-                        "/Users/yun/Desktop/test.py", python_options)
-        a.write_script()
-        return
+            path_directory = os.path.join(self.base_path, str(count))
+            if not os.path.exists(path_directory):
+                os.mkdir(path_directory)
+
+            python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': ca_list, 'na_dmu': na_list}
+            job_name = self.get_jobname(python_options)
+            a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                            "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/basic_script.py",
+                            python_options)
+            a.write_script()
+            return
 
     def errors(self):
 
@@ -111,7 +107,7 @@ class ScriptWriter(metaclass=ABCMeta):
         self._job_name = job_name
         self._node = 1
         self._ntasks = 20
-        self._walltime = "12:00:00"
+        self._walltime = "24:00:00"
         self._err_file = "log.e"
         self._out_file = "log.o"
         self._options = {'nodes': self._node, 'ntasks': self._ntasks, 'output': self._out_file,
@@ -251,7 +247,7 @@ class SavioWriter(ScriptWriter):
             self.python_options = python_options
             if python_options is None:
                 self.python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': [-2, -3, -4],
-                                       'na_dmu': [-3, -4]}
+                                       'na_dmu': [-3, -4, -5]}
 
     @property
     def account(self):
@@ -376,13 +372,9 @@ class CalculationTypeError(Exception):
 
 def main():
 
-    """
-    a = SavioWriter("python", "/Users/yun/Desktop/github_codes/CaNaVP/job.sh", "test",
-                    "/Users/yun/Desktop/test.py", None)
-    a.write_script()
-    """
-
-    test = sgmcScriptor
+    ca_range = np.arange(-15, 0)
+    na_range = np.arange(-15, 0)
+    test = sgmcScriptor(na_range, ca_range)
     test.main()
 
 
