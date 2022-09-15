@@ -130,11 +130,18 @@ def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
     temperature = 300
 
     # Handling input string list to float list
+    ca_dmu_float = []
+    for i in ca_dmu:
+        ca_dmu_float.append(float(''.join(i)))
+    na_dmu_float = []
+    for i in na_dmu:
+        na_dmu_float.append(float(''.join(i)))
+
     dmus = []
-    if not len(ca_dmu) == len(na_dmu):
+    if not len(ca_dmu_float) == len(na_dmu_float):
         raise ValueError("Cannot couple chemical potentials. Check input.")
-    for i, j in ca_dmu:
-        dmus.append((float(j), float(na_dmu[i])))
+    for i, j in enumerate(ca_dmu_float):
+        dmus.append((float(j), float(na_dmu_float[i])))
 
     runner = cnsgmcRunner(ca_amt=ca_amt, na_amt=na_amt, dmus=dmus,
                           ce_file_path=ce_file_path, ensemble_file_path=ensemble_file_path)
