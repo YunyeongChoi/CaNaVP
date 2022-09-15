@@ -77,10 +77,10 @@ class cnsgmcRunner:
             sampler.samples.metadata['flip_reaction'] = \
                 sampler.mckernels[0].mcusher._compspace.flip_reactions
 
-            filename = "{}_{}_cn_sgmc.mson".format(i, j)
+            filename = "{}_{}_cn_sgmc.mson".format(i[0], i[1])
             filepath = self.savepath.replace("test_samples.mson", filename)
             dumpfn(sampler.samples, filepath)
-            print("Ca: {}, Na: {} is done. Check {}\n".format(i, j, filepath))
+            print("Na: {}, Ca: {} is done. Check {}\n".format(i[0], i[1], filepath))
 
         return
 
