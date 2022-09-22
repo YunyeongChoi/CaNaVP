@@ -28,7 +28,7 @@ from plot.ternary_chempo import ternary_chempo
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0725_ce_fitting_on_preliminary.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, '0725_dft_fitting_on_preliminary.json'))
 filename = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_mu2_0.0005_NonZero-101_group'
 test = pickle.load(open(filename, "rb"))
 # For further use. Currently not MP compatible.
@@ -51,13 +51,13 @@ def polish_data() -> dict:
     """
     polished_dict = {}
 
-    for i in vasp_data:
-        if vasp_data[i]['convergence'] and len(vasp_data[i]['errors']) == 0:
-            contcar = Structure.from_dict(json.loads(vasp_data[i]['contcar']))
+    for data in vasp_data:
+        if vasp_data[data]['convergence'] and len(vasp_data[data]['errors']) == 0:
+            contcar = Structure.from_dict(json.loads(vasp_data[data]['contcar']))
             key = contcar.formula
-            if not key in polished_dict:
+            if key not in polished_dict:
                 polished_dict[key] = []
-            polished_dict[key].append(vasp_data[i]['energy'])
+            polished_dict[key].append(vasp_data[data]['energy'])
 
     return polished_dict
 
@@ -253,16 +253,32 @@ def ternary_pd(hull_data, line_data, option='decompose'):
 
     fig = plt.figure(dpi=300)
 
-    lines = triangle_boundary()
+    triangle_boundary()
 
-    ax = plt.xlim([-0.2, 1.2])
-    ax = plt.ylim([-0.1, 1.0])
+    plt.xlim([-0.2, 1.2])
+    plt.ylim([-0.1, 1.0])
     for spine in ['bottom', 'left', 'top', 'right']:
-        ax = plt.gca().spines[spine].set_visible(False)
-    ax = plt.gca().xaxis.set_ticklabels([])
-    ax = plt.gca().yaxis.set_ticklabels([])
-    ax = plt.gca().tick_params(bottom=False, top=False, left=False, right=False)
+        plt.gca().spines[spine].set_visible(False)
+    plt.gca().xaxis.set_ticklabels([])
+    plt.gca().yaxis.set_ticklabels([])
+    plt.gca().tick_params(bottom=False, top=False, left=False, right=False)
 
+    # Experimental data
+    if True:
+        exp_stable_list = [(1, 1), (0, 3), (0, 1), (1, 0), (1.5, 0), (0.5, 2.0), (0.4, 0.6)]
+        exp_unstable_list = [(0.93, 0.65), (0.5, 1), (0.6, 1), (0.7, 0.8), (0.7, 0.2)]
+        for config in exp_stable_list:
+            pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
+            pt = triangle_to_square(pt)
+            plt.scatter(pt[0], pt[1], marker='*', s=64, color='blue', zorder=3,
+                             edgecolors='black', linewidths=1)
+        for config in exp_unstable_list:
+            pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
+            pt = triangle_to_square(pt)
+            plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=3,
+                             edgecolors='black', linewidths=1)
+
+    # Plotting ground states.
     cmpd_params = params()
     for cmpd in hull_data:
         if len(CompAnalyzer(cmpd).els) == 1:
@@ -271,39 +287,26 @@ def ternary_pd(hull_data, line_data, option='decompose'):
         pt = triangle_to_square(pt)
         stability = 'stable' if hull_data[cmpd]['stability'] else 'unstable'
         color, marker, alpha = [cmpd_params[stability][k] for k in ['c', 'm', 'alpha']]
-        ax = plt.scatter(pt[0], pt[1],
-                         color='white',
-                         marker=marker,
-                         facecolor='white',
-                         edgecolor=color,
-                         alpha=alpha,
-                         s=64,
-                         zorder=2)
+        plt.scatter(pt[0], pt[1],
+                    color='white',
+                    marker=marker,
+                    facecolor='white',
+                    edgecolor=color,
+                    alpha=alpha,
+                    s=64,
+                    zorder=2)
 
-    if True:  # Experimental data
-        exp_stable_list = [(1, 1), (0, 3), (0, 1), (1, 0), (1.5, 0), (0.5, 2.0), (0.4, 0.6)]
-        exp_unstable_list = [(0.93, 0.65), (0.5, 1), (0.6, 1), (0.7, 0.8), (0.7, 0.2)]
-        for config in exp_stable_list:
-            pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
-            pt = triangle_to_square(pt)
-            ax = plt.scatter(pt[0], pt[1], marker='*', s=64, color='blue', zorder=3,
-                             edgecolors='black', linewidths=1)
-        for config in exp_unstable_list:
-            pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
-            pt = triangle_to_square(pt)
-            ax = plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=3,
-                             edgecolors='black', linewidths=1)
-
+    # Plotting tie lines.
     for l in line_data:
         xy = [cmpd_to_pt_canvp(line_data[l]['cmpds'][0], True),
               cmpd_to_pt_canvp(line_data[l]['cmpds'][1], True)]
-        print(xy)
         # line_data[l]['pts'] = tuple([cmpd_to_pt(cmpd, els) for cmpd in cmpds])
         x = (xy[0][0], xy[1][0])
         y = (xy[0][1], xy[1][1])
         print(x, y)
-        ax = plt.plot(x, y, zorder=1, lw=1.5, color='black')
+        plt.plot(x, y, zorder=2, lw=1.5, color='black')
 
+    # Plotting energy surface.
     x = []
     y = []
     z = []
@@ -323,8 +326,9 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     y = np.asarray(y)
     z = np.asarray(z)
     T = mtri.Triangulation(x, y)
-    ax = plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1)
+    plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1)
 
+    # Plotting labels and lagend.
     cmap = 'plasma_r'
     vmin = 0
     vmax = max(z)
@@ -345,11 +349,10 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     cb.ax.set_yticklabels(ticks)
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
-    ax = plt.show()
+    plt.show()
+    # fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/0725_dftfitting_ternaryPD.png")
 
-    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/0725_dftfitting_ternaryPD.png")
-
-    return ax, x, y, z
+    return
 
 
 def test_get_triangles():
@@ -365,8 +368,7 @@ def test_get_triangles():
 
 
 if __name__ == '__main__':
-    print(test)
-    """
+    # print(test)
     set_rc_params()
     vasp_data = convert_data(vasp_data)
     hull_data, line_data = get_hull_data(vasp_data)
@@ -377,5 +379,5 @@ if __name__ == '__main__':
     tc = ternary_chempo(polished_line_data, vasp_data)
     chempo_data = tc.get_chempo_at_cycles()
 
-    #ternary_pd(hull_data, line_data)
-    """
+    ternary_pd(hull_data, line_data)
+
