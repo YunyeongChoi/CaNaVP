@@ -591,13 +591,16 @@ class InputGen:
             account = 'co_condoceder'
             qos = 'savio_lowprio'
             partition = 'savio3'
-            ntasks = nodes * 32
+            ntasks = 32
+            del options['ntasks']
             options['account'] = account
             options['partition'] = partition
             options['qos'] = qos
-            options['ntasks'] = ntasks
-            launch_line = '    mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4' \
-                          '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(ntasks)
+            options['ntasks-per-node'] = ntasks
+            options['cpus-per-task'] = 1
+            launch_line = '    module load gcc openmpi\n'
+            launch_line += '    mpirun /global/home/users/yychoi94/bin/vasp.5.4' \
+                           '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'
 
         elif self.hpc == 'cori':
 
@@ -625,28 +628,6 @@ class InputGen:
                     option = str(option)
                     f.write('%s --%s=%s\n' % ('#SBATCH', tag, option))
             f.write('\n')
-            """
-            line = 'mkdir U; cd U;\n'
-            f.write(line)
-            line = "IsConv=`grep 'required accuracy' OUTCAR`;\n"
-            f.write(line)
-            line = 'if [ -z "${IsConv}" ]; then\n'
-            f.write(line)
-            line = '    if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
-            f.write(line)
-            line = '    if [ ! -s "POSCAR" ]; then\n'
-            f.write(line)
-            line = '        cp ../{KPOINTS,POTCAR,POSCAR} .;\n'
-            f.write(line)
-            line = '    fi\n'
-            f.write(line)
-            line = '        cp ../INCAR .;\n'
-            f.write(line)
-            f.write(launch_line)
-            line = 'fi'
-            f.write(line)
-            f.close()
-            """
             if self.continuous_option:
                 line = 'mkdir U; cd U;\n'
                 line += "IsConv=`grep 'required accuracy' OUTCAR`;\n"

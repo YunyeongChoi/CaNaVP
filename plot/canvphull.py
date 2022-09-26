@@ -28,7 +28,7 @@ from plot.ternary_chempo import ternary_chempo
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0725_dft_fitting_on_preliminary.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, '0725_ce_fitting_on_preliminary.json'))
 filename = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_mu2_0.0005_NonZero-101_group'
 test = pickle.load(open(filename, "rb"))
 # For further use. Currently not MP compatible.
@@ -278,6 +278,20 @@ def ternary_pd(hull_data, line_data, option='decompose'):
             plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=3,
                              edgecolors='black', linewidths=1)
 
+    # Plotting gcMC trajectories.
+    if True:
+        traj_dict = get_reduced_traj()
+        plt.scatter(traj_dict['-4.0_-7.0'][0][0], traj_dict['-4.0_-7.0'][0][1], s=20,
+                    color='black', zorder=5)
+        for trajs in traj_dict:
+            for i, pt in enumerate(traj_dict[trajs]):
+                if not i == len(traj_dict[trajs]) - 1:
+                    plt.plot((traj_dict[trajs][i][0], traj_dict[trajs][i+1][0]),
+                             (traj_dict[trajs][i][1], traj_dict[trajs][i+1][1]),
+                             '--', linewidth=1, zorder=4, color='darkgreen')
+            plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=20, color='red',
+                        zorder=5)
+
     # Plotting ground states.
     cmpd_params = params()
     for cmpd in hull_data:
@@ -294,7 +308,7 @@ def ternary_pd(hull_data, line_data, option='decompose'):
                     edgecolor=color,
                     alpha=alpha,
                     s=64,
-                    zorder=2)
+                    zorder=4)
 
     # Plotting tie lines.
     for l in line_data:
@@ -365,6 +379,36 @@ def test_get_triangles():
             stable_list.append(i)
 
     return stable_list
+
+
+# For Plotting trajectories of gcMC.
+
+def get_reduced_traj(to_triangle=True):
+
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/' \
+                     'traj_data.json'
+    traj_data = read_json(traj_data_path)
+    reduced_traj_data = {}
+
+    for traj in traj_data:
+        reduced_traj_data[traj] = [(0.5, 0.5)]
+        for i, number in enumerate(traj_data[traj]['Na']):
+            if number == traj_data[traj]['Na_last'] and traj_data[traj]['Ca'][i] == traj_data[traj]['Ca_last']:
+                break
+            else:
+                reduced_traj_data[traj].append((traj_data[traj]['Ca'][i] / 120, number / 120))
+
+    if to_triangle:
+        reduced_traj_in_tri = {}
+        for i in reduced_traj_data:
+            reduced_traj_in_tri[i] = []
+            for j in reduced_traj_data[i]:
+                pt = [j[0] / 1.5, j[1] / 3, 1 - j[0] / 1.5 - j[0] / 3]
+                pt = triangle_to_square(pt)
+                reduced_traj_in_tri[i].append(pt)
+        return reduced_traj_in_tri
+
+    return reduced_traj_data
 
 
 if __name__ == '__main__':
