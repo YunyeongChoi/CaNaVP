@@ -2,10 +2,10 @@
 #SBATCH --job-name=pytest
 #SBATCH --account=fc_ceder
 #SBATCH --partition=savio3
-#SBATCH --qos=savio_debug
+#SBATCH --qos=savio_normal
 #SBATCH --output=log.o
 #SBATCH --error=log.e
-#SBATCH --time=1:00:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=32
 

@@ -107,7 +107,7 @@ class launcher(object):
                                               self.hpc,
                                               j,
                                               self.option,
-                                              False)
+                                              True)
                     inputgenerator.at_once()
                     call(['sbatch', 'job.sh'])
                     print("{} launched".format(j))
