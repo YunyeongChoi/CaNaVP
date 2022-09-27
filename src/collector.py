@@ -13,7 +13,7 @@ from pymatgen.core.structure import Structure
 def main(calc_dir) -> None:
 
     # Target json file to run.
-    groundjson = os.path.join(calc_dir, 'result.json')
+    groundjson = os.path.join(calc_dir, 'result_1s.json')
 
     count = 0
     groundcount = 0
@@ -24,7 +24,7 @@ def main(calc_dir) -> None:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
             # Only ground state and it's HE variances.
-            if str(0) in j.split("/")[-2]:
+            if str(1) in j.split("/")[-2]:
                 count += 1
                 print(j)
                 spec = {}
@@ -32,7 +32,10 @@ def main(calc_dir) -> None:
                 spec["convergence"] = vr.is_converged
                 spec["energy"] = vr.get_energy
                 spec["poscar"] = vr.get_poscar.to_json()
-                spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
+                try:
+                    spec["contcar"] = vr.get_oxidation_decorated_structure().to_json()
+                except ValueError:
+                    spec["contcar"] = "Empry contcar"
                 spec["setting"] = vr.get_setting()
                 spec["errors"] = vr.errors
                 spec["directory"] = j
@@ -69,4 +72,5 @@ def get_all_magmoms(calc_dir) -> None:
 
 if __name__ == '__main__':
 
-    get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
+    main("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
+    #get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
