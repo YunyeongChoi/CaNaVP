@@ -22,8 +22,8 @@ from compmatscipy.CompAnalyzer import CompAnalyzer
 from compmatscipy.HullAnalysis import AnalyzeHull, GetHullInputData
 
 DATA_DIR = ''
-eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_gs'
-wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/prelim_canvp_ce.json'
+eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/1003_eci_gp'
+wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0927_wrangler.json'
 
 # Correction values are based on MP2020Compatibility.yaml (+U setting)
 # https://github.com/materialsproject/pymatgen/blob/master/pymatgen/entries/MP2020Compatibility.yaml
@@ -277,11 +277,12 @@ def ternary_pd(hull_data, line_data, save_path, option='decompose'):
     y = np.asarray(y)
     z = np.asarray(z)
     T = mtri.Triangulation(x, y)
-    ax = plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1)
+    normi = mpl.colors.Normalize(vmin=0, vmax=350)
+    ax = plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1, norm=normi)
 
     cmap = 'plasma_r'
     vmin = 0
-    vmax = max(z)
+    vmax = 350
     label = r'$\Delta$' + r'$\it{E}_{d}$' + r'$\/(\frac{meV}{V_{2}(PO_{4})_{3}})$'
     ticks = np.arange(0, vmax, 100)
     position = (0.85, 0.22, 0.04, 0.55)
@@ -291,9 +292,9 @@ def ternary_pd(hull_data, line_data, save_path, option='decompose'):
     tick_width = 1
 
     cmap = mpl.cm.get_cmap(cmap)
-    norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
+    #norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
     cax = fig.add_axes(position)
-    cb = mpl.colorbar.ColorbarBase(ax=cax, cmap=cmap, norm=norm, orientation='vertical', alpha=1)
+    cb = mpl.colorbar.ColorbarBase(ax=cax, cmap=cmap, norm=normi, orientation='vertical', alpha=1)
     cb.set_label(label, fontsize=label_size)
     cb.set_ticks(ticks)
     cb.ax.set_yticklabels(ticks)
@@ -377,4 +378,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args.e, args.w, args.o)
     """
-    main(eci_path, wrangler_path, './cetest_png')
+    main(eci_path, wrangler_path, '../data/1003_ce')

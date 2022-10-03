@@ -28,7 +28,7 @@ from plot.ternary_chempo import ternary_chempo
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '0725_ce_fitting_on_preliminary.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, '1003_dft_fitting.json'))
 filename = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/ecis_mu2_0.0005_NonZero-101_group'
 test = pickle.load(open(filename, "rb"))
 # For further use. Currently not MP compatible.
@@ -279,7 +279,7 @@ def ternary_pd(hull_data, line_data, option='decompose'):
                              edgecolors='black', linewidths=1)
 
     # Plotting gcMC trajectories.
-    if True:
+    if False:
         traj_dict = get_reduced_traj()
         plt.scatter(traj_dict['-4.0_-7.0'][0][0], traj_dict['-4.0_-7.0'][0][1], s=20,
                     color='black', zorder=5)
@@ -340,12 +340,14 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     y = np.asarray(y)
     z = np.asarray(z)
     T = mtri.Triangulation(x, y)
-    plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1)
+    normi = mpl.colors.Normalize(vmin=0, vmax=350)
+    plt.tricontourf(x, y, T.triangles, z, levels=20, cmap='plasma_r', alpha=1, zorder=1, norm=normi)
 
     # Plotting labels and lagend.
     cmap = 'plasma_r'
     vmin = 0
-    vmax = max(z)
+    vmax = 350
+    # vmax = max(z)
     label = r'$\Delta$' + r'$\it{E}_{d}$' + r'$\/(\frac{meV}{V_{2}(PO_{4})_{3}})$'
     ticks = np.arange(0, vmax, 100)
     position = (0.85, 0.22, 0.04, 0.55)
@@ -355,16 +357,16 @@ def ternary_pd(hull_data, line_data, option='decompose'):
     tick_width = 1
 
     cmap = mpl.cm.get_cmap(cmap)
-    norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
+    #norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
     cax = fig.add_axes(position)
-    cb = mpl.colorbar.ColorbarBase(ax=cax, cmap=cmap, norm=norm, orientation='vertical', alpha=1)
+    cb = mpl.colorbar.ColorbarBase(ax=cax, cmap=cmap, norm=normi, orientation='vertical', alpha=1)
     cb.set_label(label, fontsize=label_size)
     cb.set_ticks(ticks)
     cb.ax.set_yticklabels(ticks)
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
-    plt.show()
-    # fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/0725_dftfitting_ternaryPD.png")
+    # plt.show()
+    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/1003_dft.png")
 
     return
 
