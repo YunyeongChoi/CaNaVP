@@ -20,9 +20,9 @@ from src.setter import PoscarGen
 
 class cnsgmcRunner:
 
-    def __init__(self, machine='savio', ca_amt=0.5, na_amt=0.5, dmus = None,
+    def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
-                 temperature=300, discard=50, thin_by=10):
+                 temperature=2000, discard=50, thin_by=10):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.
@@ -55,6 +55,12 @@ class cnsgmcRunner:
         self.temperature = temperature
         self.discard = discard
         self.thin_by = thin_by
+        # This only fit to saved ensemble, final_canvp_ensemble.mson
+        # Becareful and check always this fit or not.
+        self.flip_table = np.array([[-1,  0,  1,  0,  0,  -1,  1,  0],
+                                    [-1,  0,  1,  0,  0,  0,  -1,  1],
+                                    [ 0, -1,  1,  0,  0,  -1,  0,  1],
+                                    [-2,  1,  1,  0,  0,   0,  0,  0]])
 
     def running(self):
 
@@ -79,7 +85,8 @@ class cnsgmcRunner:
 
             filename = "{}_{}_cn_sgmc.mson".format(i[0], i[1])
             filepath = self.savepath.replace("test_samples.mson", filename)
-            dumpfn(sampler.samples, filepath)
+            sampler.samples.to_hdf5(filepath)
+            # dumpfn(sampler.samples, filepath)
             print("Na: {}, Ca: {} is done. Check {}\n".format(i[0], i[1], filepath))
 
         return
@@ -119,10 +126,8 @@ class cnsgmcRunner:
 
 
 def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
-    ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/0728_canvp_ce' \
-                   '.mson'
-    ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/0728_preliminary_ce/' \
-                         '0913_0728_canvp_ensemble.mson'
+    ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_canvp_ce.mson'
+    ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_canvp_ensemble.mson'
     sc_matrix = np.array([[3, 0, 0],
                           [0, 4, 0],
                           [0, 0, 5]])
