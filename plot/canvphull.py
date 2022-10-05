@@ -424,6 +424,6 @@ if __name__ == '__main__':
         polished_line_data.append(line_data[i]['cmpds'])
     tc = ternary_chempo(polished_line_data, vasp_data)
     chempo_data = tc.get_chempo_at_cycles()
-
-    ternary_pd(hull_data, line_data)
+    print(chempo_data)
+    #ternary_pd(hull_data, line_data)
 

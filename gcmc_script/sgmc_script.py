@@ -84,8 +84,8 @@ class sgmcScriptor:
             if not os.path.exists(path_directory):
                 os.mkdir(path_directory)
 
-            python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': ca_list, 'na_dmu': na_list}
-            #job_name = self.get_jobname(python_options)
+            python_options = {'ca_amt': 0.5, 'na_amt': 1.0, 'ca_dmu': ca_list, 'na_dmu': na_list}
+            # job_name = self.get_jobname(python_options)
             job_name = "cn-sgmc_" + str(count)
             a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
                             "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/basic_script.py",
@@ -255,7 +255,7 @@ class SavioWriter(ScriptWriter):
                 raise ValueError("Your script path is needed as an input.")
             self.python_options = python_options
             if python_options is None:
-                self.python_options = {'ca_amt': 0.5, 'na_amt': 0.5, 'ca_dmu': [-2, -3, -4],
+                self.python_options = {'ca_amt': 0.5, 'na_amt': 1.0, 'ca_dmu': [-2, -3, -4],
                                        'na_dmu': [-3, -4, -5]}
 
     @property
@@ -381,8 +381,8 @@ class CalculationTypeError(Exception):
 
 def main():
 
-    ca_range = np.arange(-15, 0)
-    na_range = np.arange(-15, 0)
+    ca_range = np.arange(-10, -6, 0.5)
+    na_range = np.arange(-6, -2, 0.5)
     test = sgmcScriptor(na_range, ca_range)
     test.main()
 

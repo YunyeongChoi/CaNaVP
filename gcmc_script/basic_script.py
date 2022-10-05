@@ -16,13 +16,14 @@ from smol.io import load_work
 from smol.moca import Sampler
 from monty.serialization import dumpfn, loadfn
 from src.setter import PoscarGen
+from .gcmc_utils import get_dim_ids_by_sublattice, flip_vec_to_reaction
 
 
 class cnsgmcRunner:
 
     def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
-                 temperature=2000, discard=50, thin_by=10):
+                 temperature=2000, discard=0, thin_by=1):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.
@@ -72,17 +73,25 @@ class cnsgmcRunner:
         print(f"{end - start}s for initialization.\n")
 
         for i in self.dmus:
+            # Set chemical potentials
             chemical_potentials = {'Na+': i[0], 'Ca2+': i[1], 'Vacancy': 0, 'V3+': 0, 'V4+': 0,
                                    'V5+': 0}
             ensemble.chemical_potentials = chemical_potentials
+
             # Initializing sampler.
             sampler = Sampler.from_ensemble(ensemble, step_type="tableflip",
-                                            temperature=self.temperature, optimize_basis=True)
+                                            temperature=self.temperature, optimize_basis=False,
+                                            flip_table=self.flip_table)
             print(f"Sampling information: {sampler.samples.metadata}\n")
-            sampler.run(5000000, init_occu, thin_by=self.thin_by, progress=True)
-            sampler.samples.metadata['flip_reaction'] = \
-                sampler.mckernels[0].mcusher._compspace.flip_reactions
+            sampler.run(5000000, init_occu, thin_by=self.thin_by, progress=False)
 
+            # Update flip reactions.
+            bits = sampler.mckernels[0].mcusher.bits
+            flip_table = sampler.mckernels[0].mcusher.flip_table
+            flip_reaction = [flip_vec_to_reaction(u, bits) for u in flip_table]
+            sampler.samples.metadata['flip_reaction'] = flip_reaction
+
+            # Saving. TODO: Use flush to backend and do not call sampler everytime.
             filename = "{}_{}_cn_sgmc.mson".format(i[0], i[1])
             filepath = self.savepath.replace("test_samples.mson", filename)
             sampler.samples.to_hdf5(filepath)
@@ -125,14 +134,14 @@ class cnsgmcRunner:
         return final_supercell
 
 
-def main(ca_amt=0.5, na_amt=0.5, ca_dmu=None, na_dmu=None):
+def main(ca_amt=0.5, na_amt=1.0, ca_dmu=None, na_dmu=None):
     ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_canvp_ce.mson'
     ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_canvp_ensemble.mson'
     sc_matrix = np.array([[3, 0, 0],
                           [0, 4, 0],
                           [0, 0, 5]])
-    discard, thin_by = 50, 10
-    temperature = 300
+    discard, thin_by = 0, 1
+    temperature = 2000
 
     # Handling input string list to float list
     ca_dmu_float = []
@@ -160,7 +169,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ca_amt', type=float, required=False, default=0.5,
                         help="Amount of Ca in initial structure.")
-    parser.add_argument('--na_amt', type=float, required=False, default=0.5,
+    parser.add_argument('--na_amt', type=float, required=False, default=1.0,
                         help="Amount of Na in initial structure.")
     parser.add_argument('--ca_dmu', nargs="+", type=list, required=False, default=None,
                         help="List of Ca chemical potentials.")
