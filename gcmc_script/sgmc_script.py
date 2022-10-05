@@ -40,8 +40,8 @@ class sgmcScriptor:
         total = len(self.na_range) * len(self.ca_range)
         count = 0
         splitted_list = []
-        for i in self.na_range:
-            for j in self.ca_range:
+        for i in self.ca_range:
+            for j in self.na_range:
                 count += 1
                 if not count == total:
                     if not len(splitted_list) >= max_number:
