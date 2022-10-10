@@ -92,11 +92,11 @@ class cnsgmcRunner:
             sampler.samples.metadata['flip_reaction'] = flip_reaction
 
             # Saving. TODO: Use flush to backend and do not call sampler everytime.
-            filename = "{}_{}_cn_sgmc.mson".format(i[1], i[0])
+            filename = "{}_{}_cn_sgmc.mson".format(i[0], i[1])
             filepath = self.savepath.replace("test_samples.mson", filename)
             sampler.samples.to_hdf5(filepath)
             # dumpfn(sampler.samples, filepath)
-            print("Na: {}, Ca: {} is done. Check {}\n".format(i[1], i[0], filepath))
+            print("Ca: {}, Na: {} is done. Check {}\n".format(i[0], i[1], filepath))
 
         return
 
@@ -152,9 +152,6 @@ def main(ca_amt=0.5, na_amt=1.0, ca_dmu=None, na_dmu=None):
         na_dmu_float.append(float(''.join(i)))
 
     dmus = []
-    print(dmus)
-
-    return
     if not len(ca_dmu_float) == len(na_dmu_float):
         raise ValueError("Cannot couple chemical potentials. Check input.")
     for i, j in enumerate(ca_dmu_float):
