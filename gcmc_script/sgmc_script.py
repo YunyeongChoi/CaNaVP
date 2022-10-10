@@ -18,14 +18,14 @@ from abc import abstractmethod, ABCMeta
 
 class sgmcScriptor:
 
-    def __init__(self, na_range, ca_range):
+    def __init__(self, ca_range, na_range):
         """
         Args:
             na_range: np.array, array of na chemical potential to search.
             ca_range: np.array, array of ca chemical potential to search.
         """
-        self.na_range = na_range
         self.ca_range = ca_range
+        self.na_range = na_range
         self.base_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC"
 
     def splitter(self, max_number):
@@ -37,7 +37,7 @@ class sgmcScriptor:
         Split (na, ca) into lists that not length not exceed max_number.
         """
         return_list = []
-        total = len(self.na_range) * len(self.ca_range)
+        total = len(self.ca_range) * len(self.na_range)
         count = 0
         splitted_list = []
         for i in self.ca_range:
@@ -383,7 +383,7 @@ def main():
 
     ca_range = np.arange(-10, -6, 0.5)
     na_range = np.arange(-6, -2, 0.5)
-    test = sgmcScriptor(na_range, ca_range)
+    test = sgmcScriptor(ca_range, na_range)
     test.main()
 
 
