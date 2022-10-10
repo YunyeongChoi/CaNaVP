@@ -16,14 +16,14 @@ from smol.io import load_work
 from smol.moca import Sampler
 from monty.serialization import dumpfn, loadfn
 from src.setter import PoscarGen
-from .gcmc_utils import get_dim_ids_by_sublattice, flip_vec_to_reaction
+from gcmc_script.gcmc_utils import get_dim_ids_by_sublattice, flip_vec_to_reaction
 
 
 class cnsgmcRunner:
 
     def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
-                 temperature=2000, discard=0, thin_by=1):
+                 temperature=2000, discard=0, thin_by=10):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.
@@ -140,7 +140,7 @@ def main(ca_amt=0.5, na_amt=1.0, ca_dmu=None, na_dmu=None):
     sc_matrix = np.array([[3, 0, 0],
                           [0, 4, 0],
                           [0, 0, 5]])
-    discard, thin_by = 0, 1
+    discard, thin_by = 0, 10
     temperature = 2000
 
     # Handling input string list to float list
