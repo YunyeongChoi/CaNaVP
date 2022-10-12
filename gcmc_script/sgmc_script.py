@@ -381,8 +381,8 @@ class CalculationTypeError(Exception):
 
 def main():
 
-    ca_range = np.arange(-10, -6, 0.5)
-    na_range = np.arange(-6, -2, 0.5)
+    ca_range = np.arange(-8.4, -7.5, 0.1)
+    na_range = np.arange(-4.4, -3.5, 0.1)
     test = sgmcScriptor(ca_range, na_range)
     test.main()
 

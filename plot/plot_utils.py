@@ -172,17 +172,17 @@ def set_rc_params():
 
 def get_reduced_traj(to_triangle=True):
 
-    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/traj_data.json'
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/traj_reformatted.json'
     traj_data = read_json(traj_data_path)
     reduced_traj_data = {}
 
     for traj in traj_data:
         reduced_traj_data[traj] = [(0.5, 1.0)]
         for i, number in enumerate(traj_data[traj]['Na']):
-            if number == traj_data[traj]['Na_last'] and traj_data[traj]['Ca'][i] == traj_data[traj]['Ca_last']:
-                break
-            else:
-                reduced_traj_data[traj].append((traj_data[traj]['Ca'][i] / 120, number / 120))
+            # if number == traj_data[traj]['Na_last'] and traj_data[traj]['Ca'][i] == traj_data[traj]['Ca_last']:
+            #     break
+            # else:
+            reduced_traj_data[traj].append((traj_data[traj]['Ca'][i] / 120, number / 120))
 
     if to_triangle:
         reduced_traj_in_tri = {}

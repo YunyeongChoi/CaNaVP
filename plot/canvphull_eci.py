@@ -127,7 +127,7 @@ def ternary_pd(hull_data, line_data, save_path, exp=True, traj=True):
                     edgecolor=color,
                     alpha=alpha,
                     s=64,
-                    zorder=2)
+                    zorder=3)
 
     if exp:  # Experimental data
         exp_stable_list = [(1, 1), (0, 3), (0, 1), (1, 0), (1.5, 0), (0.5, 2.0), (0.4, 0.6)]
@@ -145,15 +145,18 @@ def ternary_pd(hull_data, line_data, save_path, exp=True, traj=True):
 
     if traj:
         traj_dict = get_reduced_traj()
-        plt.scatter(0.5, 1.0, s=20, color='black', zorder=5)
+        startpt = [0.5 / 1.5, 1.0 / 3, 1 - 0.5 / 1.5 - 1.0 / 3]
+        startpt = triangle_to_square(startpt)
+        plt.scatter(startpt[0], startpt[1], s=36, color='black', zorder=6,
+                    edgecolors='black', linewidths=1)
         for trajs in traj_dict:
             for i, pt in enumerate(traj_dict[trajs]):
                 if not i == len(traj_dict[trajs]) - 1:
                     plt.plot((traj_dict[trajs][i][0], traj_dict[trajs][i+1][0]),
                              (traj_dict[trajs][i][1], traj_dict[trajs][i+1][1]),
-                             '--', linewidth=1, zorder=4, color='darkgreen')
-            plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=20, color='red',
-                        zorder=5)
+                             '--', linewidth=1, zorder=4, color='darkslategrey')
+            plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=36, color='red',
+                        zorder=5, edgecolors='black', linewidths=1)
 
     for l in line_data:
         xy = [cmpd_to_pt_canvp(line_data[l]['cmpds'][0], True),
