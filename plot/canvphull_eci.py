@@ -157,6 +157,7 @@ def ternary_pd(hull_data, line_data, save_path, exp=True, traj=True):
                              '--', linewidth=1, zorder=4, color='darkslategrey')
             plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=36, color='red',
                         zorder=5, edgecolors='black', linewidths=1)
+            plt.text(pt[0] + 0.02, pt[1] + 0.02, str(trajs), fontsize=5, zorder=5)
 
     for l in line_data:
         xy = [cmpd_to_pt_canvp(line_data[l]['cmpds'][0], True),
@@ -231,4 +232,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args.e, args.w, args.o)
     """
-    main(eci_path, wrangler_path, '../data/1005_traj')
+    main(eci_path, wrangler_path, '../data/1019_traj')
