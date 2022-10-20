@@ -242,9 +242,9 @@ class SavioWriter(ScriptWriter):
                  python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
-        self._account = 'co_condoceder'
+        self._account = 'fc_ceder'
         self._partition = 'savio3'
-        self._qos = 'savio_lowprio'
+        self._qos = 'savio_normal'
         if self._partition == 'savio3':
             self.ntasks = 32 * self.node
         self._continuous_option = True

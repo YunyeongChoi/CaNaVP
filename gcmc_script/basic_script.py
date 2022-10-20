@@ -23,7 +23,7 @@ class cnsgmcRunner:
 
     def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
-                 temperature=2000, discard=0, thin_by=10):
+                 temperature=5000, discard=0, thin_by=10):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.

@@ -36,7 +36,7 @@ def main():
 
     ca, na, v3, v4, v5, vac = species()
     json_save_dir = "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/traj_data.json"
-    save_dir = "/global/scratch/users/yychoi94/CaNaVP_gcMC_1005/data"
+    save_dir = "/global/scratch/users/yychoi94/CaNaVP_gcMC/data"
     saved_list = glob(save_dir + "/*")
     # Currently have a problem on saving.
     # saved_list.remove("/global/scratch/users/yychoi94/CaNaVP_gcMC/data/-11.0_-2.0_cn_sgmc.mson")
