@@ -232,4 +232,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args.e, args.w, args.o)
     """
-    main(eci_path, wrangler_path, '../data/1019_traj')
+    main(eci_path, wrangler_path, '../data/1020_traj')

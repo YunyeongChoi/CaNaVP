@@ -16,6 +16,7 @@ from smol.io import load_work
 from smol.moca import Sampler
 from monty.serialization import dumpfn, loadfn
 from src.setter import PoscarGen
+from pymatgen.core.structure import Structure
 from gcmc_script.gcmc_utils import get_dim_ids_by_sublattice, flip_vec_to_reaction
 
 
@@ -23,7 +24,8 @@ class cnsgmcRunner:
 
     def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
-                 temperature=5000, discard=0, thin_by=10):
+                 temperature=300, discard=0, thin_by=10,
+                 struct_address='/global/scratch/users/yychoi94/CaNaVP/data/83_44_5000_unsorted_POSCAR'):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.
@@ -62,12 +64,16 @@ class cnsgmcRunner:
                                     [-1,  0,  1,  0,  0,  0,  -1,  1],
                                     [ 0, -1,  1,  0,  0,  -1,  0,  1],
                                     [-2,  1,  1,  0,  0,   0,  0,  0]])
+        self.struct_address = struct_address
 
     def running(self):
 
         start = time.time()
         ensemble = loadfn(self.ensemble_file_path)
-        init_struct = self.initialized_structure()
+        if self.struct_address:
+            init_struct = Structure.from_file(self.struct_address)
+        else:
+            init_struct = self.initialized_structure()
         init_occu = ensemble.processor.occupancy_from_structure(init_struct)
         end = time.time()
         print(f"{end - start}s for initialization.\n")
@@ -141,7 +147,7 @@ def main(ca_amt=0.5, na_amt=1.0, ca_dmu=None, na_dmu=None):
                           [0, 4, 0],
                           [0, 0, 5]])
     discard, thin_by = 0, 10
-    temperature = 2000
+    temperature = 300
 
     # Handling input string list to float list
     ca_dmu_float = []

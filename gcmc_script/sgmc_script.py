@@ -45,12 +45,12 @@ class sgmcScriptor:
                 count += 1
                 if not count == total:
                     if not len(splitted_list) >= max_number:
-                        splitted_list.append((i, j))
+                        splitted_list.append((np.round(i, 5), np.round(j, 5)))
                     else:
                         return_list.append(splitted_list)
-                        splitted_list = [(i, j)]
+                        splitted_list = [(np.round(i, 5), np.round(j, 5))]
                 else:
-                    splitted_list.append((i, j))
+                    splitted_list.append((np.round(i, 5), np.round(j, 5)))
                     return_list.append(splitted_list)
 
         return return_list
@@ -381,8 +381,8 @@ class CalculationTypeError(Exception):
 
 def main():
 
-    ca_range = np.arange(-8.4, -7.5, 0.1)
-    na_range = np.arange(-4.4, -3.5, 0.1)
+    ca_range = np.arange(-10.3, -6.3, 0.5)
+    na_range = np.arange(-5.4, -3.4, 0.25)
     test = sgmcScriptor(ca_range, na_range)
     test.main()
 
