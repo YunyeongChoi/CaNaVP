@@ -55,7 +55,7 @@ def main():
             species_count = temp.get_species_counts()
             stop_i = len(energy_set)
             for i, j in enumerate(energy_set):
-                if (np.var(energy_set[i:i+1000])) < 0.1:
+                if (np.var(energy_set[i:i+1000])) < 0.001:
                     stop_i = i
                     break
             result_dict[name] = {}

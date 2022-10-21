@@ -25,7 +25,7 @@ class cnsgmcRunner:
     def __init__(self, machine='savio', ca_amt=0.5, na_amt=1.0, dmus = None,
                  savepath=None, savename=None, ce_file_path='', ensemble_file_path='',
                  temperature=300, discard=0, thin_by=10,
-                 struct_address='/global/scratch/users/yychoi94/CaNaVP/data/83_44_5000_unsorted_POSCAR'):
+                 saved_occu='/global/scratch/users/yychoi94/CaNaVP/data/83_44_5000_occu.npy'):
         """
         Args:
             self.dmus: list(tuple). First one of tuple is Na chemical potential.
@@ -64,17 +64,17 @@ class cnsgmcRunner:
                                     [-1,  0,  1,  0,  0,  0,  -1,  1],
                                     [ 0, -1,  1,  0,  0,  -1,  0,  1],
                                     [-2,  1,  1,  0,  0,   0,  0,  0]])
-        self.struct_address = struct_address
+        self.saved_occu = saved_occu
 
     def running(self):
 
         start = time.time()
         ensemble = loadfn(self.ensemble_file_path)
-        if self.struct_address:
-            init_struct = Structure.from_file(self.struct_address)
+        if self.saved_occu:
+            init_occu = np.load(self.saved_occu)
         else:
             init_struct = self.initialized_structure()
-        init_occu = ensemble.processor.occupancy_from_structure(init_struct)
+            init_occu = ensemble.processor.occupancy_from_structure(init_struct)
         end = time.time()
         print(f"{end - start}s for initialization.\n")
 
