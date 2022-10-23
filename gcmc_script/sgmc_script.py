@@ -64,7 +64,7 @@ class sgmcScriptor:
 
         return '_'.join(line)
 
-    def main(self):
+    def general_scan(self):
         """
         Write a script.
         """
@@ -94,6 +94,54 @@ class sgmcScriptor:
             os.chdir(path_directory)
             subprocess.call(["sbatch", "job.sh"])
             print("{} launched".format(job_name))
+
+        return
+
+    def one_cation_scan(self):
+
+        count = 0
+        if len(self.ca_range) == 1:
+            for chempo in self.na_range:
+                count += 1
+                if count < 10:
+                    path_directory = os.path.join(self.base_path, str(0) + str(count))
+                else:
+                    path_directory = os.path.join(self.base_path, str(count))
+                if not os.path.exists(path_directory):
+                    os.mkdir(path_directory)
+                python_options = {'ca_dmu': self.ca_range[0], 'na_dmu': chempo}
+                job_name = "na_scan_" + str(count)
+                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc_script"
+                                "/pseudo_annealing_script.py",
+                                python_options)
+                a.write_script()
+                os.chdir(path_directory)
+                # subprocess.call(["sbatch", "job.sh"])
+                # print("{} launched".format(job_name))
+        elif len(self.na_range) == 1:
+            for chempo in self.ca_range:
+                count += 1
+                if count < 10:
+                    path_directory = os.path.join(self.base_path, str(0) + str(count))
+                else:
+                    path_directory = os.path.join(self.base_path, str(count))
+                if not os.path.exists(path_directory):
+                    os.mkdir(path_directory)
+                python_options = {'ca_dmu': chempo, 'na_dmu': self.na_range[0]}
+                job_name = "ca_scan_" + str(count)
+                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc_script"
+                                "/pseudo_annealing_script.py",
+                                python_options)
+                a.write_script()
+                os.chdir(path_directory)
+                # subprocess.call(["sbatch", "job.sh"])
+                # print("{} launched".format(job_name))
+        elif len(self.ca_range) > 1 and len(self.na_range) > 1:
+            raise ValueError("This assume only one chemical potential change")
+        else:
+            raise ValueError("Set chemical potential properly")
 
         return
 
@@ -381,10 +429,15 @@ class CalculationTypeError(Exception):
 
 def main():
 
-    ca_range = np.arange(-10.3, -6.3, 0.5)
-    na_range = np.arange(-5.4, -3.4, 0.25)
+    # ca_range = np.arange(-10.3, -6.3, 0.5)
+    # na_range = np.arange(-5.4, -3.4, 0.25)
+    # test = sgmcScriptor(ca_range, na_range)
+    # test.main()
+
+    ca_range = np.linspace(-8.55, -6, 30)
+    na_range = [-4.525]
     test = sgmcScriptor(ca_range, na_range)
-    test.main()
+    test.one_cation_scan()
 
 
 if __name__ == '__main__':

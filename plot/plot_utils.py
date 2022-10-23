@@ -172,7 +172,7 @@ def set_rc_params():
 
 def get_reduced_traj(to_triangle=True):
 
-    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/traj_reformatted.json'
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/traj_data_300K_ca0na1.json'
     traj_data = read_json(traj_data_path)
     reduced_traj_data = {}
 
