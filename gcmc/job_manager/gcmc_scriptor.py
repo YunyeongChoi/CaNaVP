@@ -13,7 +13,7 @@ Created on Thu Aug 26 2022
 import os
 import subprocess
 import numpy as np
-from gcmc.savio_writer import SavioWriter
+from gcmc.job_manager.savio_writer import SavioWriter
 
 
 class sgmcScriptor:

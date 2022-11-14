@@ -18,9 +18,16 @@ from gcmc.utils import flip_vec_to_reaction
 
 class cnsgmcRunner:
 
-    def __init__(self, machine='savio', dmus = None, savepath=None, savename=None,
-                 ce_file_path='', ensemble_file_path='',
-                 temperature=None, discard=0, thin_by=10,
+    def __init__(self,
+                 machine='savio',
+                 dmus = None,
+                 savepath=None,
+                 savename=None,
+                 ce_file_path='',
+                 ensemble_file_path='',
+                 temperature=None,
+                 discard=0,
+                 thin_by=10,
                  saved_occu='/global/scratch/users/yychoi94/CaNaVP/data/855_4525_300_occu.npy'):
         """
         Args:

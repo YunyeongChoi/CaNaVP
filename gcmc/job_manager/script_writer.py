@@ -4,7 +4,11 @@ from gcmc.exception import MachineNameError, CalculationTypeError
 
 class ScriptWriter(metaclass=ABCMeta):
 
-    def __init__(self, machine, calculation_type, file_path, job_name):
+    def __init__(self,
+                 machine,
+                 calculation_type,
+                 file_path,
+                 job_name):
         """
         Args:
             machine: Machine want to run job.

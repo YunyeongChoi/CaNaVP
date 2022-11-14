@@ -1,9 +1,13 @@
-from gcmc.script_writer import ScriptWriter
+from gcmc.job_manager.script_writer import ScriptWriter
 
 
 class SavioWriter(ScriptWriter):
 
-    def __init__(self, calculation_type, file_path, job_name, python_script_name=None,
+    def __init__(self,
+                 calculation_type,
+                 file_path,
+                 job_name,
+                 python_script_name=None,
                  python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
