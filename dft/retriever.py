@@ -4,31 +4,29 @@
 Created on 06/28/2022
 
 @author: yun
-@purpose: retrieve energy, magnetic moment, stress tensor from VASP calculations. Errors and
-Wanrings are also collected for consecutive running of VASP. Data cleaning for further cluster
-expansion and Monte Carlo simulations.
-Maybe parse chgcar?
 
-Need an abstract class 'retriever'.
-retriever -> vasp_retriever, NEB_retriever, AIMD_retriever, SCAN_retriever, vdw_retriever.
-Which design pattern is the best?
+@purpose: Retrieve convergence, energy, magnetic moment from VASP calculations.
+Errors and Wanrings are also collected for consecutive running of VASP.
+
+@development:
+1. Need Data cleaning for further cluster expansion and Monte Carlo simulations.
+2. Need to parse stress tensor from VASP calculations. Not urgent task.
+3. Need to parse CHGCAR..?
+4. Need an abstract class 'retriever'. Inherit retriever class to make child classes, vasp_retriever,
+   NEB_retriever, AIMD_retriever, SCAN_retriever, vdw_retriever. Currently only vasp_retriever is
+   generated using brute force.
+5. Need to Decide the best design patterns.
+6. Need to develop test.
 """
 
 # General import
 import os
-import json
-import warnings
-from typing import Type, Any, Union
 import numpy as np
 from pathlib import Path
-from glob import glob
-from pymatgen.core import Structure
-from src.setter import InputGen
 
 # Pymatgen import
 from pymatgen.core.structure import Structure
-from pymatgen.core.sites import PeriodicSite
-from src.vaspexception import NeutralChargeError, AtomMoveError
+from dft.vaspexception import NeutralChargeError, AtomMoveError
 
 test_folder = "/Users/yun/Desktop/github_codes/CaNaVP/setup/test_calc_2"
 
@@ -36,6 +34,17 @@ test_folder = "/Users/yun/Desktop/github_codes/CaNaVP/setup/test_calc_2"
 class vasp_retriever(object):
 
     def __init__(self, calc_dir):
+        """
+        Args:
+            calc_dir: Directory that VASP ran.
+        Attribute:
+            self.energy: Energy
+            self.stress_tensor: Stress tensor
+            self.setting: Setting of VASP run from OUTCAR
+            self.magmom: Magnetic moments of atoms from OUTCAR
+            self.warns: Warnings
+            self.errors: Errors
+        """
 
         self.calc_dir = calc_dir
         self.energy = 0
@@ -78,8 +87,8 @@ class vasp_retriever(object):
                     orbital_mag_params=None
                     ) -> dict:
         """
+        Collect the all settings from OUTCAR.
         Need update for SCAN, vdw, NEB calculation
-        Explanation: ~
         """
         if dimension_params is None:
             dimension_params = {"Dimension of arrays": ['NKPTS', 'NKDIM', 'NBANDS', 'NEDOS',
@@ -373,5 +382,6 @@ class vasp_retriever(object):
     def get_stress_tensor(self) -> dict:
 
         # To track stability of cathode.
+        # Need to develop.
 
         return {}

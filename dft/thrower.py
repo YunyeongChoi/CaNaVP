@@ -3,8 +3,7 @@ import warnings
 import argparse
 from glob import glob
 from subprocess import call
-from pymatgen.core.structure import Structure
-from src.setter import PoscarGen, InputGen, read_json
+from dft.setter import PoscarGen, InputGen, read_json
 
 
 class launcher(object):
@@ -12,13 +11,14 @@ class launcher(object):
     def __init__(self, machine, hpc, option, input, continuous, calc_dir=None):
 
         """
-        :param machine: Machine to make input files.
-        :param hpc: Machine to run jobs.
-        :param option: Convergence option. fast or full.
-        :param input: Input option. If true make input files again.
-        :param calc_dir: Calculation directory.
+        Args:
+            machine: Machine to make input files.
+            hpc: Machine to run jobs.
+            option: Convergence option. fast or full.
+            input: Input option. If true make input files again.
+            calc_dir: Calculation directory.
 
-        # Need to be rewrite. Very dirty structure.
+        # Need to be rewritten. Very dirty structure.
         """
 
         self.machine = machine
@@ -74,26 +74,6 @@ class launcher(object):
 
     def launch_jobs(self) -> None:
 
-        """
-        for i in self.resultjson:
-            if not self.resultjson[i]["convergence"]:
-                os.chdir(self.resultjson[i]["directory"])
-                if self.input:
-                    inputgenerator = InputGen(self.machine, self.hpc,
-                            self.resultjson[i]["directory"], self.option, self.continuous)
-                    inputgenerator.at_once()
-                call(['sbatch', 'job.sh'])
-                print("{} launched".format(self.resultjson[i]["directory"]))
-            elif len(self.resultjson[i]["errors"]) > 0:
-                os.chdir(self.resultjson[i]["directory"])
-                if self.input:
-                    inputgenerator = InputGen(self.machine, self.hpc,
-                            self.resultjson[i]["directory"], self.option, False)
-                    inputgenerator.at_once()
-                call(['sbatch', 'job.sh'])
-                print("{} launched".format(self.resultjson[i]["directory"]))
-        """
-
         count = 0
         spec_list = glob(self.calc_dir + "/*/")
         for i in spec_list:
@@ -115,23 +95,6 @@ class launcher(object):
         print("total {} launched.".format(count))
 
         return
-
-
-def change_lattice_vector():
-    # Will be deleted.
-    from pymatgen.core.lattice import Lattice
-
-    test_poscar = "/Users/yun/Desktop/github_codes/CaNaVP/setup/calc/0.167_2.0/0/POSCAR"
-    test_structure = Structure.from_file(test_poscar)
-    test_lattice = Lattice([[16.7288, 0., 0.],
-                            [-4.3644, 7.559363, 0.],
-                            [0., 0., 21.8042]])
-
-    new_structure = Structure(test_lattice, test_structure.species,
-                              test_structure.frac_coords,
-                              test_structure.charge, False, False, False, None)
-
-    return new_structure
 
 
 if __name__ == '__main__':

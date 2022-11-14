@@ -324,11 +324,13 @@ class PoscarGen(object):
 
     def makeHEstatehelper(self, x, y, z, poscar, b_sites_in_poscar, e_candidates, option):
         """
-        :param poscar: target structure want to change.
-        :param b_sites_in_poscar: b sites in the target structure.
-        :param e_candidates: available e sites in the base structure.
-        :param option: cations. "Ca" or "Na"
-        :return:
+        Args:
+            poscar: target structure want to change.
+            b_sites_in_poscar: b sites in the target structure.
+            e_candidates: available e sites in the base structure.
+            option: cations. "Ca" or "Na"
+        Returns:
+            Wirte POSCAR file.
         """
 
         if len(b_sites_in_poscar[option]) > 0:
@@ -364,10 +366,14 @@ class PoscarGen(object):
         Force move one Ca or one Na from 6b site to random 18e site.
         Need all bsite e site information.
         Need to clean a bit. Using too many lists.
-        x: Ca concentration (float),
-        y: Na concentration (float),
-        z: nth order of Ewald energy (int).
-        option: Str, 'Ca' or 'Na' to move to 18e from 6b site.
+
+        Args:
+            x: Ca concentration (float),
+            y: Na concentration (float),
+            z: nth order of Ewald energy (int).
+            option: Str, 'Ca' or 'Na' to move to 18e from 6b site.
+        Returns:
+            None
         """
 
         poscar_dir = os.path.join(self.calc_dir, str(np.round(x, 3)) + '_' + str(np.round(y, 3)),
@@ -433,21 +439,15 @@ class PoscarGen(object):
 class InputGen:
     """
     INCAR, KPOINTS, POTCAR, job script generator for VASP run.
+
+    Args:
+        machine: Machine that build files. YUN, cori, savio, stampede, bridges2, ginar.
+        hpc: Machine that actually run calculations. cori, savio, stampede, bridges2 ginar.
+        calc_dir: Directory that contains POSCAR file.
     """
 
     def __init__(self, machine, hpc, calc_dir, convergence_option, continuous_option):
-        """
-        :param machine: Machine that build files. YUN, cori, savio, stampede, bridges2, ginar.
-        :param hpc: Machine that actually run calculations. cori, savio, stampede, bridges2 ginar.
-        :param calc_dir: Directory that contains POSCAR file.
-        test_calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test/0.5_1.0'
-        test_poscar = '/Users/yun/Desktop/github_codes/CaNaVP/setup/calc_test/0.5_1.0/0/POSCAR'
-        test_structure = Structure.from_file(test_poscar)
 
-        Need to add option fast / full option.
-        Need to remove dependencies.
-        Need to write consecutive run from fast to full.
-        """
         self.machine = machine
         self.hpc = hpc
         self.calc_dir = calc_dir
@@ -471,9 +471,12 @@ class InputGen:
 
     def get_incar(self, ISIF = 3, U = True) -> None:
         """
-        :param ISIF: 3 for structural optimization, 2 for NEB
-        :param U: +U if U is true.
-        :return: Write INCAR in self.calc_dir directory.
+        Args:
+            ISIF: 3 for structural optimization, 2 for NEB
+            U: +U if U is true.
+        Returns:
+            Write INCAR in self.calc_dir directory.
+
         # Algo all, LMAXMIX 4 if d 6 if f, LWAVE TRUE, AMIX 0.2 BMIX 0.0001
         # ISTART 2 if WAVECAR exists.
         # Warning if OSZICAR exists, but WAVECAR not exists.

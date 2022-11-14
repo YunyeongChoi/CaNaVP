@@ -5,9 +5,8 @@ Collect convergence, energy, magmom, poscar, contcar.
 """
 import os
 from glob import glob
-from src.retriever import vasp_retriever
-from src.setter import read_json, write_json
-from pymatgen.core.structure import Structure
+from dft.retriever import vasp_retriever
+from dft.setter import write_json
 
 
 def main(calc_dir) -> None:
@@ -73,4 +72,4 @@ def get_all_magmoms(calc_dir) -> None:
 if __name__ == '__main__':
 
     main("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
-    #get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
+    # get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
