@@ -14,10 +14,9 @@ import numpy as np
 from copy import deepcopy
 from smol.io import load_work
 from smol.moca import Sampler
-from monty.serialization import dumpfn, loadfn
-from src.setter import PoscarGen
-from pymatgen.core.structure import Structure
-from gcmc_script.gcmc_utils import get_dim_ids_by_sublattice, flip_vec_to_reaction
+from monty.serialization import loadfn
+from dft.setter import PoscarGen
+from gcmc.utils import flip_vec_to_reaction
 
 
 class cnsgmcRunner:
