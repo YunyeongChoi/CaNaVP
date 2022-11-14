@@ -1,0 +1,5 @@
+# Ignore all .log files
+*.log
+
+# Specific file with large volume.
+data/final_data/gcmc/final_canvp_ensemble.mson
