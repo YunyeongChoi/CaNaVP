@@ -26,7 +26,7 @@ class sgmcScriptor:
         """
         self.ca_range = ca_range
         self.na_range = na_range
-        self.base_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC"
+        self.base_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC_300K_Naonly"
 
     def splitter(self, max_number):
         """
@@ -117,8 +117,8 @@ class sgmcScriptor:
                                 python_options)
                 a.write_script()
                 os.chdir(path_directory)
-                # subprocess.call(["sbatch", "job.sh"])
-                # print("{} launched".format(job_name))
+                subprocess.call(["sbatch", "job.sh"])
+                print("{} launched".format(job_name))
         elif len(self.na_range) == 1:
             for chempo in self.ca_range:
                 count += 1
@@ -136,8 +136,8 @@ class sgmcScriptor:
                                 python_options)
                 a.write_script()
                 os.chdir(path_directory)
-                # subprocess.call(["sbatch", "job.sh"])
-                # print("{} launched".format(job_name))
+                subprocess.call(["sbatch", "job.sh"])
+                print("{} launched".format(job_name))
         elif len(self.ca_range) > 1 and len(self.na_range) > 1:
             raise ValueError("This assume only one chemical potential change")
         else:
@@ -434,11 +434,15 @@ def main():
     # test = sgmcScriptor(ca_range, na_range)
     # test.main()
 
-    ca_range = np.linspace(-8.55, -6, 30)
-    na_range = [-4.525]
+    # ca_range = np.linspace(-8.55, -6, 30)
+    # na_range = [-4.525]
+    # test = sgmcScriptor(ca_range, na_range)
+    # test.one_cation_scan()
+
+    ca_range = [-8.55]
+    na_range = np.linspace(-4.525, -3.3, 30)
     test = sgmcScriptor(ca_range, na_range)
     test.one_cation_scan()
-
 
 if __name__ == '__main__':
 

@@ -41,7 +41,7 @@ class cnsgmcRunner:
             if self.machine == "yun":
                 self.savepath = '/Users/yun/Desktop/github_codes/CaNaVP/data'
             elif self.machine == "savio":
-                self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
+                self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC_300K_Naonly/data'
             else:
                 raise ValueError("Check Machine option.")
             if not os.path.exists(self.savepath):
@@ -54,7 +54,7 @@ class cnsgmcRunner:
         self.ce_file_path = ce_file_path
         self.ensemble_file_path = ensemble_file_path
         if temperature is None:
-            temperature = [5000, 300, 5000, 300, 5000, 300]
+            temperature = [300, 5000, 300, 5000, 300, 5000, 300]
         self.temperature = temperature
         self.discard = discard
         self.thin_by = thin_by
@@ -83,7 +83,7 @@ class cnsgmcRunner:
         ensemble.chemical_potentials = chemical_potentials
 
         # Initializing sampler.
-        sampler = Sampler.from_ensemble(ensemble, step_type="tableflip", optimize_basis=False,
+        sampler = Sampler.from_ensemble(ensemble, self.temperature[0], step_type="tableflip", optimize_basis=False,
                                         flip_table=self.flip_table)
         print(f"Sampling information: {sampler.samples.metadata}\n")
         sampler.anneal(self.temperature, 3000000, init_occu, thin_by=self.thin_by, progress=False)
@@ -124,9 +124,9 @@ def main(ca_dmu=None, na_dmu=None):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ca_dmu', nargs="+", type=float, required=False, default=None,
+    parser.add_argument('--ca_dmu', type=float, required=False, default=None,
                         help="Ca chemical potentials.")
-    parser.add_argument('--na_dmu', nargs="+", type=float, required=False, default=None,
+    parser.add_argument('--na_dmu', type=float, required=False, default=None,
                         help="Na chemical potentials.")
     args = parser.parse_args()
     main(args.ca_dmu, args.na_dmu)
