@@ -10,15 +10,17 @@ Created on Thu Nov 24 2022
 import os
 import numpy as np
 from abc import abstractmethod, ABCMeta
+from monty.serialization import loadfn
+from smol.io import load_work
+from smol.moca.ensemble.ensemble import Ensemble
+from smol.cofe.expansion import ClusterExpansion
+from pymatgen.core.structure import Structure
 
 
-class cnsgmcbase(metaclass=ABCMeta):
+class gcmcabc(metaclass=ABCMeta):
 
     def __init__(self,
                  machine,
-                 ca_amt,
-                 na_amt,
-                 saved_occu,
                  dmus,
                  savepath,
                  savename,
@@ -28,9 +30,6 @@ class cnsgmcbase(metaclass=ABCMeta):
         """
         Args:
             machine: Machine that will run jobs.
-            ca_amt: Initial Ca amount. Unit is per V2(PO4)3
-            na_amt: Initial Na amount. Unit is per V2(PO4)3
-            saved_occu: np.array. Initial occupancy of Structure that want to start from.
             dmus: list(tuple). Chemical potentials of Na, Ca that will be used.
                   First one of tuple is Na chemical potential.
             savepath: Directory want to save hdf5 file.
@@ -39,9 +38,6 @@ class cnsgmcbase(metaclass=ABCMeta):
             ensemble_file_path: Ensemble Object path
         """
         self.machine = machine
-        self.ca_amt = ca_amt
-        self.na_amt = na_amt
-        self.saved_occu = saved_occu
         self.dmus = dmus
         self.savepath = savepath
         self.savename = savename
@@ -74,8 +70,28 @@ class cnsgmcbase(metaclass=ABCMeta):
         # Becareful and do sanity check always this fit or not.
         self.flip_table = np.array([[-1,  0,  1,  0,  0,  -1,  1,  0],
                                     [-1,  0,  1,  0,  0,  0,  -1,  1],
-                                    [ 0, -1,  1,  0,  0,  -1,  0,  1],
+                                    [0, -1,  1,  0,  0,  -1,  0,  1],
                                     [-2,  1,  1,  0,  0,   0,  0,  0]])
+
+    @property
+    def expansion(self) -> ClusterExpansion:
+
+        return load_work(self.ce_file_path)['ClusterExpansion']
+
+    @property
+    def ensemble(self) -> Ensemble:
+
+        return loadfn(self.ensemble_file_path)
+
+    @property
+    def supercell_matrix(self) -> np.ndarray:
+
+        return self.ensemble.processor.supercell_matrix
+
+    @property
+    def primcell(self) -> Structure:
+
+        return self.expansion.structure
 
     @abstractmethod
     def sanity_check(self):
@@ -83,7 +99,7 @@ class cnsgmcbase(metaclass=ABCMeta):
         return
 
     @abstractmethod
-    def running(self):
+    def run(self):
 
         return
 
@@ -91,4 +107,3 @@ class cnsgmcbase(metaclass=ABCMeta):
     def initialized_structure(self):
 
         return
-

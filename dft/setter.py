@@ -330,7 +330,7 @@ class PoscarGen(object):
             e_candidates: available e sites in the base structure.
             option: cations. "Ca" or "Na"
         Returns:
-            Wirte POSCAR file.
+            Write POSCAR file.
         """
 
         if len(b_sites_in_poscar[option]) > 0:

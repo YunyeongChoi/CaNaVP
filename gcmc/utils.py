@@ -1,8 +1,10 @@
 import numpy as np
+from copy import deepcopy
 
 
 def get_dim_ids_by_sublattice(bits):
-    """Get the component index of each species in vector n.
+    """
+    Get the component index of each species in vector n.
 
     Args:
         bits(List[List[Specie|Vacancy|Element]]):
@@ -20,7 +22,8 @@ def get_dim_ids_by_sublattice(bits):
 
 
 def flip_vec_to_reaction(u, bits):
-    """Convert flip direction into a reaction formula in string.
+    """
+    Convert flip direction into a reaction formula in string.
 
     This function is for easy interpretation of flip directions.
     Args:
@@ -49,3 +52,31 @@ def flip_vec_to_reaction(u, bits):
     from_str = ' + '.join(from_strs)
     to_str = ' + '.join(to_strs)
     return from_str + ' -> ' + to_str
+
+
+def divide_matrix(matrix):
+    """
+    To divide supercell matrix into two.
+
+    Args:
+        matrix:
+            np.ndarray of 3x3 matrix
+    Returns:
+        shortest elongated matrix and the residual parts
+    """
+    diag = matrix.diagonal()
+    min_position = np.argmin(matrix.diagonal())
+    in_diag = deepcopy(diag)
+    out_diag = deepcopy(diag)
+    for i, j in enumerate(in_diag):
+        if i == min_position:
+            pass
+        else:
+            in_diag[i] = 1
+    for i, j in enumerate(out_diag):
+        if i == min_position:
+            out_diag[i] = 1
+        else:
+            pass
+
+    return np.diag(in_diag), np.diag(out_diag)
