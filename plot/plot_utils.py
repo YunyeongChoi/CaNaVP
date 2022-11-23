@@ -14,7 +14,7 @@ import os
 import numpy as np
 import itertools
 import matplotlib as mpl
-from src.setter import read_json
+from dft.setter import read_json
 from compmatscipy.CompAnalyzer import CompAnalyzer
 from compmatscipy.plotting_functions import tableau_colors
 
@@ -172,7 +172,7 @@ def set_rc_params():
 
 def get_reduced_traj(to_triangle=True):
 
-    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/traj_data_300K_ca0na1.json'
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/final_data/gcmc/traj_data_300K.json'
     traj_data = read_json(traj_data_path)
     reduced_traj_data = {}
 

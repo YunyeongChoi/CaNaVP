@@ -16,8 +16,8 @@ from compmatscipy.HullAnalysis import AnalyzeHull, GetHullInputData
 from plot.plot_utils import *
 
 DATA_DIR = ''
-eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/1003_eci_gp'
-wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0927_wrangler.json'
+eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/final_data/ce/1003_eci_gp'
+wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/final_data/ce/0927_wrangler.json'
 
 # Correction values are based on MP2020Compatibility.yaml (+U setting)
 # https://github.com/materialsproject/pymatgen/blob/master/pymatgen/entries/MP2020Compatibility.yaml
@@ -145,7 +145,8 @@ def ternary_pd(hull_data, line_data, save_path, exp=True, traj=True):
 
     if traj:
         traj_dict = get_reduced_traj()
-        startpt = [0.5 / 1.5, 1.0 / 3, 1 - 0.5 / 1.5 - 1.0 / 3]
+        # startpt = [0.5 / 1.5, 1.0 / 3, 1 - 0.5 / 1.5 - 1.0 / 3]
+        startpt = [66 / 120 / 1.5, 111 / 120 / 3, 1 - 66 / 120 / 1.5 - 111 / 120 / 3]
         startpt = triangle_to_square(startpt)
         plt.scatter(startpt[0], startpt[1], s=36, color='black', zorder=6,
                     edgecolors='black', linewidths=1)
@@ -232,4 +233,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args.e, args.w, args.o)
     """
-    main(eci_path, wrangler_path, '../data/1022_traj')
+    main(eci_path, wrangler_path, '../data/temp_traj')

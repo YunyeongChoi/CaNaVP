@@ -195,7 +195,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
     tick_width = 1
 
     cmap = mpl.cm.get_cmap(cmap)
-    #norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
+    # norm = plt.cm.colors.Normalize(vmin=vmin, vmax=vmax)
     cax = fig.add_axes(position)
     cb = mpl.colorbar.ColorbarBase(ax=cax, cmap=cmap, norm=normi, orientation='vertical', alpha=1)
     cb.set_label(label, fontsize=label_size)
@@ -231,6 +231,6 @@ if __name__ == '__main__':
         polished_line_data.append(line_data[i]['cmpds'])
     tc = ternary_chempo(polished_line_data, vasp_data)
     chempo_data = tc.get_chempo_at_cycles()
-    #print(chempo_data)
+    # print(chempo_data)
     ternary_pd(hull_data, line_data)
 
