@@ -56,10 +56,15 @@ class gcmcabc(metaclass=ABCMeta):
                     self.savepath = os.path.join(self.savepath, "test_samples.mson")
                 else:
                     self.savepath = os.path.join(self.savepath, self.savename)
+        else:
+            if self.savename is None:
+                self.savepath = os.path.join(self.savepath, "test_samples.mson")
+            else:
+                self.savepath = os.path.join(self.savepath, self.savename)
 
         if self.ce_file_path is None:
             self.ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/ce' \
-                                '/final_canvp_ce.mson '
+                                '/final_canvp_ce.mson'
 
         if self.ensemble_file_path is None:
             self.ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/gcmc' \

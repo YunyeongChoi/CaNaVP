@@ -103,7 +103,7 @@ class gcmc_basic(gcmcabc):
 
     def run(self):
 
-        init_occu = self.ensemble.processor.occupancy_from_structure()
+        init_occu = self.initialized_structure()
 
         for dmu in self.dmus:
             chempo = {'Na+': dmu[1], 'Ca2+': dmu[0], 'Vacancy': 0, 'V3+': 0, 'V4+': 0, 'V5+': 0}
@@ -115,7 +115,7 @@ class gcmc_basic(gcmcabc):
                                             optimize_basis=False,
                                             flip_table=self.flip_table)
             sampler.run(nsteps=self.steps,
-                        init_occu=init_occu,
+                        initial_occupancies=init_occu,
                         thin_by=self.thin_by,
                         progress=False)
 
