@@ -18,7 +18,7 @@ from gcmc.job_manager.savio_writer import SavioWriter
 
 class sgmcScriptor:
 
-    def __init__(self, ca_range, na_range):
+    def __init__(self, ca_range, na_range, save_path=None):
         """
         Args:
             na_range: np.array, array of na chemical potential to search.
@@ -26,7 +26,15 @@ class sgmcScriptor:
         """
         self.ca_range = ca_range
         self.na_range = na_range
-        self.base_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC_300K_Naonly"
+        if save_path is None:
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"
+        else:
+            self.save_path = save_path
+        #if not os.path.exists(save_path):
+        #    raise FileNotFoundError("Need a right path to save files")
+        #self.data_path = os.path.join(self.save_path, "data")
+        #if not os.path.exists(self.data_path):
+        #    os.mkdir(self.data_path)
 
     def splitter(self, max_number):
         """
@@ -67,6 +75,11 @@ class sgmcScriptor:
     def general_scan(self):
         """
         Write a script.
+        usage:
+            ca_range = np.arange(-10.3, -6.3, 0.5)
+            na_range = np.arange(-5.4, -3.4, 0.25)
+            test = sgmcScriptor(ca_range, na_range)
+            test.main()
         """
         chempo_list = self.splitter(4)
         count = 0
@@ -78,17 +91,21 @@ class sgmcScriptor:
                 na_list.append(j[1])
 
             if count < 10:
-                path_directory = os.path.join(self.base_path, str(0) + str(count))
+                path_directory = os.path.join(self.save_path, str(0) + str(count))
             else:
-                path_directory = os.path.join(self.base_path, str(count))
+                path_directory = os.path.join(self.save_path, str(count))
             if not os.path.exists(path_directory):
                 os.mkdir(path_directory)
 
-            python_options = {'ca_amt': 0.5, 'na_amt': 1.0, 'ca_dmu': ca_list, 'na_dmu': na_list}
-            # job_name = self.get_jobname(python_options)
+            python_options = {'ca_amt': 0.5,
+                              'na_amt': 1.0,
+                              'ca_dmu': ca_list,
+                              'na_dmu': na_list,
+                              'path': self.data_path}
             job_name = "cn-sgmc_" + str(count)
             a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                            "/global/scratch/users/yychoi94/CaNaVP/gcmc_script/basic_script.py",
+                            "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                            "/basic_launcher.py",
                             python_options)
             a.write_script()
             os.chdir(path_directory)
@@ -98,22 +115,33 @@ class sgmcScriptor:
         return
 
     def one_cation_scan(self):
-
+        """
+        usage:
+            ca_range = [-8.55]
+            na_range = np.linspace(-4.525, -3.3, 30)
+            test = sgmcScriptor(ca_range, na_range)
+            test.one_cation_scan()
+        TODO: Delete this.
+        """
         count = 0
         if len(self.ca_range) == 1:
             for chempo in self.na_range:
                 count += 1
                 if count < 10:
-                    path_directory = os.path.join(self.base_path, str(0) + str(count))
+                    path_directory = os.path.join(self.save_path, str(0) + str(count))
                 else:
-                    path_directory = os.path.join(self.base_path, str(count))
+                    path_directory = os.path.join(self.save_path, str(count))
                 if not os.path.exists(path_directory):
                     os.mkdir(path_directory)
-                python_options = {'ca_dmu': self.ca_range[0], 'na_dmu': chempo}
+                python_options = {'ca_amt': 0.5,
+                                  'na_amt': 1.0,
+                                  'ca_dmu': self.ca_range[0],
+                                  'na_dmu': chempo,
+                                  'path': self.data_path}
                 job_name = "na_scan_" + str(count)
                 a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/global/scratch/users/yychoi94/CaNaVP/gcmc_script"
-                                "/pseudo_annealing_script.py",
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                "/basic_launcher.py",
                                 python_options)
                 a.write_script()
                 os.chdir(path_directory)
@@ -123,16 +151,20 @@ class sgmcScriptor:
             for chempo in self.ca_range:
                 count += 1
                 if count < 10:
-                    path_directory = os.path.join(self.base_path, str(0) + str(count))
+                    path_directory = os.path.join(self.save_path, str(0) + str(count))
                 else:
-                    path_directory = os.path.join(self.base_path, str(count))
+                    path_directory = os.path.join(self.save_path, str(count))
                 if not os.path.exists(path_directory):
                     os.mkdir(path_directory)
-                python_options = {'ca_dmu': chempo, 'na_dmu': self.na_range[0]}
+                python_options = {'ca_amt': 0.5,
+                                  'na_amt': 1.0,
+                                  'ca_dmu': chempo,
+                                  'na_dmu': self.na_range[0],
+                                  'path': self.data_path}
                 job_name = "ca_scan_" + str(count)
                 a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/global/scratch/users/yychoi94/CaNaVP/gcmc_script"
-                                "/pseudo_annealing_script.py",
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                "/basic_launcher.py",
                                 python_options)
                 a.write_script()
                 os.chdir(path_directory)
@@ -165,7 +197,9 @@ def main():
     ca_range = [-8.55]
     na_range = np.linspace(-4.525, -3.3, 30)
     test = sgmcScriptor(ca_range, na_range)
-    test.one_cation_scan()
+    print(test.splitter(4))
+
+    # test.one_cation_scan()
 
 
 if __name__ == '__main__':

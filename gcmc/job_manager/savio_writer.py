@@ -24,8 +24,11 @@ class SavioWriter(ScriptWriter):
                 raise ValueError("Your script path is needed as an input.")
             self.python_options = python_options
             if python_options is None:
-                self.python_options = {'ca_amt': 0.5, 'na_amt': 1.0, 'ca_dmu': [-2, -3, -4],
-                                       'na_dmu': [-3, -4, -5]}
+                self.python_options = {'ca_amt': 0.5,
+                                       'na_amt': 1.0,
+                                       'ca_dmu': [-2, -3, -4],
+                                       'na_dmu': [-3, -4, -5],
+                                       'path': "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"}
 
     @property
     def account(self):
