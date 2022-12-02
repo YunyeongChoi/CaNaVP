@@ -65,17 +65,17 @@ def divide_matrix(matrix):
         shortest elongated matrix and the residual parts
     """
     diag = matrix.diagonal()
-    min_position = np.argmin(matrix.diagonal())
+    max_position = np.argmax(matrix.diagonal())
     in_diag = deepcopy(diag)
     out_diag = deepcopy(diag)
     for i, j in enumerate(in_diag):
-        if i == min_position:
-            pass
+        if i == max_position:
+            in_diag[i] = j / 2
         else:
             in_diag[i] = 1
     for i, j in enumerate(out_diag):
-        if i == min_position:
-            out_diag[i] = 1
+        if i == max_position:
+            out_diag[i] = 2
         else:
             pass
 
