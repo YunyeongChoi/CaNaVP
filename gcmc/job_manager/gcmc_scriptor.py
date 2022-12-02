@@ -30,11 +30,11 @@ class sgmcScriptor:
             self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"
         else:
             self.save_path = save_path
-        #if not os.path.exists(save_path):
-        #    raise FileNotFoundError("Need a right path to save files")
-        #self.data_path = os.path.join(self.save_path, "data")
-        #if not os.path.exists(self.data_path):
-        #    os.mkdir(self.data_path)
+        if not os.path.exists(self.save_path):
+            raise FileNotFoundError("Need a right path to save files")
+        self.data_path = os.path.join(self.save_path, "data")
+        if not os.path.exists(self.data_path):
+            os.mkdir(self.data_path)
 
     def splitter(self, max_number):
         """
@@ -194,10 +194,10 @@ def main():
     # test = sgmcScriptor(ca_range, na_range)
     # test.one_cation_scan()
 
-    ca_range = [-8.55]
-    na_range = np.linspace(-4.525, -3.3, 30)
+    ca_range = [-30]
+    na_range = np.linspace(-5.0, -3.0, 30)
     test = sgmcScriptor(ca_range, na_range)
-    print(test.splitter(4))
+    test.general_scan()
 
     # test.one_cation_scan()
 

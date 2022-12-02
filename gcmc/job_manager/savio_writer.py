@@ -11,11 +11,19 @@ class SavioWriter(ScriptWriter):
                  python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
-        self._account = 'fc_ceder'
-        self._partition = 'savio3'
-        self._qos = 'savio_normal'
-        if self._partition == 'savio3':
-            self.ntasks = 32 * self.node
+        self._account = 'co_condoceder'
+        if self._account == 'fc_ceder':
+            self._partition = 'savio3'
+            self._qos = 'savio_normal'
+            if self._partition == 'savio3':
+                self.ntasks = 32 * self.node
+            self.options.pop('cpus-per-task', None)
+        elif self._account == 'co_condoceder':
+            self._partition = 'savio4_htc'
+            self._qos = 'condoceder_htc4_normal'
+            self.ntasks = 56
+            self.cpus = 1
+            self.options.pop('nodes', None)
         self._continuous_option = True
         self.options = {"account": self._account, "partition": self._partition, "qos": self._qos}
         if self.calculation_type == 'python':

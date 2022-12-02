@@ -68,15 +68,25 @@ class gcmcabc(metaclass=ABCMeta):
 
         if self.ensemble_file_path is None:
             self.ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/gcmc' \
-                                      '/final_canvp_ensemble.mson'
+                                      '/final_canvp_ensemble_1201.mson'
 
         # This only fit to saved ensemble, ./data/final_data/gcmc/final_canvp_ensemble.mson
         # The different ensemble object can have different sublattice orderings.
         # Becareful and do sanity check always this fit or not.
+        """
+        if final_canvp_ensemble
         self.flip_table = np.array([[-1,  0,  1,  0,  0,  -1,  1,  0],
                                     [-1,  0,  1,  0,  0,  0,  -1,  1],
                                     [0, -1,  1,  0,  0,  -1,  0,  1],
                                     [-2,  1,  1,  0,  0,   0,  0,  0]])
+        """
+        """
+        if final_canvp_ensemble_1201
+        """
+        self.flip_table = np.array([[0,  -1,  0,  1,  -1,  1,  0,  0],
+                                    [0,  -1,  0,  1,  0,  -1,  1,  0],
+                                    [0,  0,  -1,  1,  -1,  0,  1,  0],
+                                    [0,  -2,  1,  1,  0,  0,  0,  0]])
 
     @property
     def expansion(self) -> ClusterExpansion:

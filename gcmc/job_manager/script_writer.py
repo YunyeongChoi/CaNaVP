@@ -20,11 +20,16 @@ class ScriptWriter(metaclass=ABCMeta):
         self._job_name = job_name
         self._node = 1
         self._ntasks = 20
+        self._cpus = 1
         self._walltime = "24:00:00"
         self._err_file = "log.e"
         self._out_file = "log.o"
-        self._options = {'nodes': self._node, 'ntasks': self._ntasks, 'output': self._out_file,
-                         'error': self._err_file, 'time': self._walltime,
+        self._options = {'nodes': self._node,
+                         'ntasks-per-node': self._ntasks,
+                         'cpus-per-task': self._cpus,
+                         'output': self._out_file,
+                         'error': self._err_file,
+                         'time': self._walltime,
                          'job-name': self._job_name}
 
         # if calculation_type = python, need basic python file. - Will be done in basic_script.py
@@ -90,7 +95,16 @@ class ScriptWriter(metaclass=ABCMeta):
     @ntasks.setter
     def ntasks(self, ntasks_number):
         self._ntasks = ntasks_number
-        self.options = {"ntasks": ntasks_number}
+        self.options = {"ntasks-per-node": ntasks_number}
+
+    @property
+    def cpus(self):
+        return self._cpus
+
+    @cpus.setter
+    def cpus(self, cpu_number):
+        self._cpus = cpu_number
+        self.options = {"cpus-per-task": cpu_number}
 
     @property
     def walltime(self):
