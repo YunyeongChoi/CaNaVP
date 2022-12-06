@@ -1,4 +1,6 @@
 # General import
+import os
+import json
 import time
 import argparse
 import numpy as np
@@ -11,7 +13,7 @@ from smol.moca import Sampler
 from dft.setter import PoscarGen
 from gcmc.utils import flip_vec_to_reaction
 from gcmc.launcher.base_launcher import gcmcabc
-from gcmc.utils import divide_matrix
+from gcmc.utils import divide_matrix, NumpyEncoder
 
 
 class gcmc_basic(gcmcabc):
@@ -68,40 +70,55 @@ class gcmc_basic(gcmcabc):
 
         return interm_cell, residue_matrix
 
-    def initialized_structure(self, verbose=True) -> np.ndarray:
+    def initialized_structure(self, from_occu=False, verbose=True) -> np.ndarray:
         """
         Initialize structure based on Ewald ordering.
+        from_occu: path to saved occu. Default is False.
+        verbose: Print how long takes to initialize structure.
         """
         start = time.time()
 
-        interm_cell, residue_matrix = self.get_intermediate_structure()
+        if not from_occu:
+            interm_cell, residue_matrix = self.get_intermediate_structure()
 
-        for i, j in enumerate(interm_cell):
-            if j.species_string == "Na+:0.333, Ca2+:0.333":
-                interm_cell.replace(i, 'Na')
-            elif j.species_string == "V3+:0.333, V4+:0.333, V5+:0.333":
-                interm_cell.replace(i, 'V')
+            for i, j in enumerate(interm_cell):
+                if j.species_string == "Na+:0.333, Ca2+:0.333":
+                    interm_cell.replace(i, 'Na')
+                elif j.species_string == "V3+:0.333, V4+:0.333, V5+:0.333":
+                    interm_cell.replace(i, 'V')
 
-        poscar_generator = PoscarGen(basestructure=interm_cell)
-        groups = poscar_generator.get_ordered_structure(self.ca_amt, self.na_amt)
+            poscar_generator = PoscarGen(basestructure=interm_cell)
+            groups = poscar_generator.get_ordered_structure(self.ca_amt, self.na_amt)
 
-        if 'Ni3+' in groups[0][0].composition.as_dict().keys():
-            groups[0][0].replace_species({'Ni3+': 'V3+'})
-        if 'Mn4+' in groups[0][0].composition.as_dict().keys():
-            groups[0][0].replace_species({'Mn4+': 'V4+'})
-        if 'Cr5+' in groups[0][0].composition.as_dict().keys():
-            groups[0][0].replace_species({'Cr5+': 'V5+'})
+            if 'Ni3+' in groups[0][0].composition.as_dict().keys():
+                groups[0][0].replace_species({'Ni3+': 'V3+'})
+            if 'Mn4+' in groups[0][0].composition.as_dict().keys():
+                groups[0][0].replace_species({'Mn4+': 'V4+'})
+            if 'Cr5+' in groups[0][0].composition.as_dict().keys():
+                groups[0][0].replace_species({'Cr5+': 'V5+'})
 
-        final_supercell = groups[0][0]
-        final_supercell.make_supercell(residue_matrix)
-        occupancy = self.ensemble.processor.occupancy_from_structure(final_supercell)
+            final_supercell = groups[0][0]
+            final_supercell.make_supercell(residue_matrix)
+            occupancy = self.ensemble.processor.occupancy_from_structure(final_supercell)
+        else:
+            # noinspection PyTypeChecker
+            if not os.path.exists(from_occu):
+                raise FileNotFoundError("Occupancy file path is wrong.")
+            occupancy = np.load(from_occu)
+
         end = time.time()
 
         if verbose:
             print(f"{end - start}s for initialization.\n")
+
         return occupancy
 
-    def run(self):
+    def run(self, saving_option="brief"):
+        """
+        Args:
+            saving_option: brief if want to save energy, occupancy, and species count to np file.
+                           hdf5 if want to save entire sampler.samples object.
+        """
 
         init_occu = self.initialized_structure()
 
@@ -126,12 +143,34 @@ class gcmc_basic(gcmcabc):
             sampler.samples.metadata['flip_reaction'] = flip_reaction
 
             # Saving. TODO: Use flush to backend and do not call sampler everytime.
-            filename = "{}_{}_cn_sgmc.mson".format(dmu[0], dmu[1])
-            filepath = self.savepath.replace("test_samples.mson", filename)
-            sampler.samples.to_hdf5(filepath)
-            print(f"Sampling information: {sampler.samples.metadata}\n")
-            print("Ca chempo: {}, Na chempo: {} is done. Check {}\n".
-                  format(dmu[0], dmu[1], filepath))
+            if saving_option == "hdf5":
+                filename = "{}_{}_cn_sgmc.mson".format(dmu[0], dmu[1])
+                filepath = self.savepath.replace("test_samples.mson", filename)
+                sampler.samples.to_hdf5(filepath)
+                print(f"Sampling information: {sampler.samples.metadata}\n")
+                print("Ca chempo: {}, Na chempo: {} is done. Check {}\n".
+                      format(dmu[0], dmu[1], filepath))
+            elif saving_option == "brief":
+                # Save energy numpy array
+                energy_filename = "{}_{}_energy.npy".format(dmu[0], dmu[1])
+                energy_filepath = self.savepath.replace("test_samples.mson", energy_filename)
+                np.save(energy_filepath, sampler.samples.get_energies())
+                # Save occupancy numpy array
+                occu_filename = "{}_{}_occupancy.npy".format(dmu[0], dmu[1])
+                occu_filepath = self.savepath.replace("test_samples.mson", occu_filename)
+                np.save(occu_filepath, sampler.samples.get_occupancies())
+                # Save species count numpy array
+                species_filename = "{}_{}_species_count.json".format(dmu[0], dmu[1])
+                species_filepath = self.savepath.replace("test_samples.mson", species_filename)
+                species_count = sampler.samples.get_species_counts()
+                writable_species_count = {}
+                for species in species_count:
+                    writable_species_count[species.to_pretty_string()] = species_count[species]
+                dumped2json = json.dumps(writable_species_count, cls=NumpyEncoder)
+                with open(species_filepath, 'w') as f:
+                    json.dump(dumped2json, f)
+            else:
+                raise ValueError
 
         return
 
