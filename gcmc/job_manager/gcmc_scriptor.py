@@ -27,7 +27,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/5000K_556_7584_3544"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -194,8 +194,8 @@ def main():
     # test = sgmcScriptor(ca_range, na_range)
     # test.one_cation_scan()
 
-    ca_range = [-30]
-    na_range = np.linspace(-5.0, -3.0, 30)
+    ca_range = np.arange(-8.4, -7.5, 0.1)
+    na_range = np.arange(-4.4, -3.5, 0.1)
     test = sgmcScriptor(ca_range, na_range)
     test.general_scan()
 

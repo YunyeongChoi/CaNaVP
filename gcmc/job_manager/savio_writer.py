@@ -11,7 +11,7 @@ class SavioWriter(ScriptWriter):
                  python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
-        self._account = 'co_condoceder'
+        self._account = 'fc_ceder'
         if self._account == 'fc_ceder':
             self._partition = 'savio3'
             self._qos = 'savio_normal'
@@ -36,7 +36,7 @@ class SavioWriter(ScriptWriter):
                                        'na_amt': 1.0,
                                        'ca_dmu': [-2, -3, -4],
                                        'na_dmu': [-3, -4, -5],
-                                       'path': "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"}
+                                       'path': "/global/scratch/users/yychoi94/CaNaVP_gcMC/5000K_556_7584_3544"}
 
     @property
     def account(self):
