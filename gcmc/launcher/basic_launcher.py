@@ -159,6 +159,12 @@ class gcmc_basic(gcmcabc):
                 occu_filename = "{}_{}_occupancy.npy".format(dmu[0], dmu[1])
                 occu_filepath = self.savepath.replace("test_samples.mson", occu_filename)
                 np.save(occu_filepath, sampler.samples.get_occupancies())
+                # Save metadata of sampler
+                metadata_filename = "{}_{}_metadata.json".format(dmu[0], dmu[1])
+                metadata_filepath = self.savepath.replace("test_samples.mson", metadata_filename)
+                metadata = sampler.samples.metadata
+                with open(metadata_filepath, 'w') as g:
+                    json.dump(metadata, g)
                 # Save species count numpy array
                 species_filename = "{}_{}_species_count.json".format(dmu[0], dmu[1])
                 species_filepath = self.savepath.replace("test_samples.mson", species_filename)
