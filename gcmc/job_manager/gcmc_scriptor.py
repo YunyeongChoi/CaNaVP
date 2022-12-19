@@ -42,7 +42,7 @@ class sgmcScriptor:
             max_number: int, max_number of mc run to run at one node.
         Returns:
             List[List[tuple]]
-        Split (na, ca) into lists that not length not exceed max_number.
+        Split (ca, na) into lists that not length not exceed max_number.
         """
         return_list = []
         total = len(self.ca_range) * len(self.na_range)
@@ -63,6 +63,34 @@ class sgmcScriptor:
 
         return return_list
 
+    def match_splitter(self, max_number):
+        """
+        Args:
+            max_number: int, max_number of mc run to run at one node.
+        Returns:
+            List[List[tuple]]
+        match ca, na chempo list to (ca, na) tuple and split into lists that not length not
+        exceed max_number.
+        """
+        return_list = []
+        assert len(self.ca_range) == len(self.na_range)
+        total = len(self.ca_range)
+        count = 0
+        splitted_list = []
+        for i, j in enumerate(self.ca_range):
+            count += 1
+            if not count == total:
+                if not len(splitted_list) >= max_number:
+                    splitted_list.append(((np.round(j, 5)), np.round(self.na_range[i], 5)))
+                else:
+                    return_list.append(splitted_list)
+                    splitted_list = [((np.round(j, 5)), np.round(self.na_range[i], 5))]
+            else:
+                splitted_list.append(((np.round(j, 5)), np.round(self.na_range[i], 5)))
+                return_list.append(splitted_list)
+
+        return return_list
+
     @staticmethod
     def get_jobname(options):
 
@@ -72,7 +100,7 @@ class sgmcScriptor:
 
         return '_'.join(line)
 
-    def general_scan(self):
+    def general_scan(self, option=''):
         """
         Write a script.
         usage:
@@ -81,7 +109,12 @@ class sgmcScriptor:
             test = sgmcScriptor(ca_range, na_range)
             test.main()
         """
-        chempo_list = self.splitter(4)
+        if option == 'general':
+            chempo_list = self.splitter(4)
+        elif option == 'match':
+            chempo_list = self.match_splitter(4)
+        else:
+            raise ValueError('not supported option')
         count = 0
         for chempo_set in chempo_list:
             count += 1
@@ -194,22 +227,34 @@ def main():
     # test = sgmcScriptor(ca_range, na_range)
     # test.one_cation_scan()
 
-    #ca_range = np.arange(-8.5, -7.5, 0.1)
-    #na_range = np.arange(-4.5, -3.5, 0.1)
-    #test = sgmcScriptor(ca_range, na_range)
-    #test.general_scan()
+    # ca_range = np.arange(-8.5, -7.5, 0.1)
+    # na_range = np.arange(-4.5, -3.5, 0.1)
+    # test = sgmcScriptor(ca_range, na_range)
+    # test.general_scan()
 
     # test.one_cation_scan()
 
-    #ca_range = [-30]
-    #na_range = np.arange(-6.0, -2.0, 0.04)
-    #test = sgmcScriptor(ca_range, na_range)
-    #test.general_scan()
+    # ca_range = [-30]
+    # na_range = np.arange(-6.0, -2.0, 0.04)
+    # test = sgmcScriptor(ca_range, na_range)
+    # test.general_scan()
 
-    ca_range = np.arange(-10.0, -5.0, 0.05)
-    na_range = [-3.64]
+    # ca_range = np.arange(-10.0, -5.0, 0.05)
+    # na_range = [-3.64]
+    # test = sgmcScriptor(ca_range, na_range)
+    # test.general_scan()
+
+    voltage_range = np.linspace(1.5, 4.0, 100)
+    ca_range, na_range = [], []
+    for i in voltage_range:
+        ca_voltage = -2 * i - 1.9985
+        na_voltage = -i - 1.3122
+        ca_range.append(np.round(ca_voltage, 3))
+        na_range.append(np.round(na_voltage, 3))
+
     test = sgmcScriptor(ca_range, na_range)
-    test.general_scan()
+    test.general_scan(option='match')
+
 
 if __name__ == '__main__':
 
