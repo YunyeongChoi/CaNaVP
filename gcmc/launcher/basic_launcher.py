@@ -105,6 +105,7 @@ class gcmc_basic(gcmcabc):
             if not os.path.exists(from_occu):
                 raise FileNotFoundError("Occupancy file path is wrong.")
             occupancy = np.load(from_occu)
+            print("occupancy is loaded")
 
         end = time.time()
 
@@ -120,7 +121,7 @@ class gcmc_basic(gcmcabc):
                            hdf5 if want to save entire sampler.samples object.
         """
 
-        init_occu = self.initialized_structure()
+        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_30_364_occu.npy')
 
         for dmu in self.dmus:
             chempo = {'Na+': dmu[1], 'Ca2+': dmu[0], 'Vacancy': 0, 'V3+': 0, 'V4+': 0, 'V5+': 0}
@@ -156,15 +157,25 @@ class gcmc_basic(gcmcabc):
                 energy_filepath = self.savepath.replace("test_samples.mson", energy_filename)
                 np.save(energy_filepath, sampler.samples.get_energies())
                 # Save occupancy numpy array
-                occu_filename = "{}_{}_occupancy.npy".format(dmu[0], dmu[1])
+                occu_filename = "{}_{}_occupancy.npz".format(dmu[0], dmu[1])
                 occu_filepath = self.savepath.replace("test_samples.mson", occu_filename)
-                np.save(occu_filepath, sampler.samples.get_occupancies())
+                np.savez_compressed(occu_filepath, o=sampler.samples.get_occupancies())
+                # np.save(occu_filepath, sampler.samples.get_occupancies())
                 # Save metadata of sampler
                 metadata_filename = "{}_{}_metadata.json".format(dmu[0], dmu[1])
                 metadata_filepath = self.savepath.replace("test_samples.mson", metadata_filename)
                 metadata = sampler.samples.metadata
+                writable_metadata = {}
+                for key in metadata:
+                    if not key == 'chemical_potentials':
+                        writable_metadata[key] = metadata[key]
+                    else:
+                        if not 'chemical_potentials' in writable_metadata.keys():
+                            writable_metadata['chemical_potentials'] = {}
+                        for species in metadata[key]:
+                            writable_metadata['chemical_potentials'][species.to_pretty_string()] = metadata[key][species]
                 with open(metadata_filepath, 'w') as g:
-                    json.dump(metadata, g)
+                    json.dump(writable_metadata, g)
                 # Save species count numpy array
                 species_filename = "{}_{}_species_count.json".format(dmu[0], dmu[1])
                 species_filepath = self.savepath.replace("test_samples.mson", species_filename)
@@ -191,7 +202,7 @@ def main(machine,
          savepath=None,
          ca_amt=0.5,
          na_amt=1.0,
-         steps=5000000,
+         steps=3000000,
          temperature=300,
          thin_by=10,
          discard=0
