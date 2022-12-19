@@ -197,6 +197,25 @@ def get_reduced_traj(to_triangle=True):
     return reduced_traj_data
 
 
+def new_get_traj():
+
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/300K_Ca_fromNa3_traj.json'
+    traj_data = read_json(traj_data_path)
+
+    reduced_traj_in_tri = {}
+    for i in traj_data:
+        reduced_traj_in_tri[i] = []
+        for j in traj_data[i]:
+            pt = [j[0] / 1.5, j[1] / 3, 1 - j[0] / 1.5 - j[1] / 3]
+            pt = triangle_to_square(pt)
+            reduced_traj_in_tri[i].append(pt)
+
+    return reduced_traj_in_tri
+
+
+
+
+
 def quick_check():
 
     traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/0728_preliminary_ce/' \
@@ -210,4 +229,5 @@ def quick_check():
 
 if __name__ == '__main__':
 
-    quick_check()
+    print(np.arange(-6.0, -2.0, 0.04))
+    print(len(np.arange(-6.0, -2.0, 0.04)[:60]))

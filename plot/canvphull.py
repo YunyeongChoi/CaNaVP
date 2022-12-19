@@ -123,7 +123,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
 
     # Plotting gcMC trajectories.
     if traj:
-        traj_dict = get_reduced_traj()
+        traj_dict = new_get_traj()
         plt.scatter(0.5, 1.0, s=20, color='black', zorder=5)
         for trajs in traj_dict:
             for i, pt in enumerate(traj_dict[trajs]):
@@ -203,8 +203,8 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
     cb.ax.set_yticklabels(ticks)
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
-    plt.show()
-    # fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/1005_traj.png")
+    # plt.show()
+    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/test_traj.png")
 
     return
 
