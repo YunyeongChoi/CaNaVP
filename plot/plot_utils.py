@@ -199,7 +199,7 @@ def get_reduced_traj(to_triangle=True):
 
 def new_get_traj():
 
-    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/300K_Ca_fromNa3_traj.json'
+    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/300K_voltage_traj.json'
     traj_data = read_json(traj_data_path)
 
     reduced_traj_in_tri = {}
