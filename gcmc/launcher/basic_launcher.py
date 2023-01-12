@@ -121,7 +121,7 @@ class gcmc_basic(gcmcabc):
                            hdf5 if want to save entire sampler.samples object.
         """
 
-        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_30_364_occu.npy')
+        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_30_432_occu.npy')
 
         for dmu in self.dmus:
             chempo = {'Na+': dmu[1], 'Ca2+': dmu[0], 'Vacancy': 0, 'V3+': 0, 'V4+': 0, 'V5+': 0}

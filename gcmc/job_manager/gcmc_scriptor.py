@@ -27,7 +27,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/300K_556_105_364"
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/300K_556_v_3_15"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -244,7 +244,7 @@ def main():
     # test = sgmcScriptor(ca_range, na_range)
     # test.general_scan()
 
-    voltage_range = np.linspace(1.5, 4.0, 100)
+    voltage_range = np.linspace(1.5, 3.0, 100)
     ca_range, na_range = [], []
     for i in voltage_range:
         ca_voltage = -2 * i - 1.9985
