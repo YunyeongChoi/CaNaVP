@@ -43,7 +43,7 @@ class ScriptWriter(metaclass=ABCMeta):
 
     @machine.setter
     def machine(self, name):
-        if name not in ["savio", "cori", "stampede", "bridges"]:
+        if name not in ["savio", "cori", "stampede", "bridges", "lawrencium"]:
             raise MachineNameError("Not in available machine list. choose one of savio, cori, "
                                    "stampede, bridges.")
         self._machine = name
