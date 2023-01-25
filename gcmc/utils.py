@@ -1,6 +1,6 @@
+import json
 import numpy as np
 from copy import deepcopy
-import json
 
 
 class NumpyEncoder(json.JSONEncoder):

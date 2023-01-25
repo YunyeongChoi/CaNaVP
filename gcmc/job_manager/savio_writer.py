@@ -36,7 +36,8 @@ class SavioWriter(ScriptWriter):
                                        'na_amt': 1.0,
                                        'ca_dmu': [-2, -3, -4],
                                        'na_dmu': [-3, -4, -5],
-                                       'path': "/global/scratch/users/yychoi94/CaNaVP_gcMC/5000K_556_7584_3544"}
+                                       'path': "/global/scratch/users/yychoi94/CaNaVP_gcMC"
+                                               "/5000K_556_7584_3544"}
 
     @property
     def account(self):

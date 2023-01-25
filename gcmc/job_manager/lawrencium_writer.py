@@ -1,7 +1,7 @@
 from gcmc.job_manager.script_writer import ScriptWriter
 
 
-class lawrencium_writer(ScriptWriter):
+class LawrenciumWriter(ScriptWriter):
 
     def __init__(self,
                  calculation_type,

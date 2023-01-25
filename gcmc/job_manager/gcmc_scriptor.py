@@ -14,20 +14,24 @@ import os
 import subprocess
 import numpy as np
 from gcmc.job_manager.savio_writer import SavioWriter
+from gcmc.job_manager.lawrencium_writer import LawrenciumWriter
 
 
 class sgmcScriptor:
 
-    def __init__(self, ca_range, na_range, save_path=None):
+    def __init__(self, machine, ca_range, na_range, save_path=None):
         """
         Args:
-            na_range: np.array, array of na chemical potential to search.
+            machine: Machine want to launch calculations.
             ca_range: np.array, array of ca chemical potential to search.
+            na_range: np.array, array of na chemical potential to search.
+            save_path: path that all directories will be saved.
         """
+        self.machine = machine
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/300K_556_v_3_15"
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -103,6 +107,8 @@ class sgmcScriptor:
     def general_scan(self, option=''):
         """
         Write a script.
+        option - general: scan all the possible combinations in the given range of Ca/Na
+        option - match: scan the matched combinations in the given range of Ca/Na
         usage:
             ca_range = np.arange(-10.3, -6.3, 0.5)
             na_range = np.arange(-5.4, -3.4, 0.25)
@@ -135,11 +141,20 @@ class sgmcScriptor:
                               'ca_dmu': ca_list,
                               'na_dmu': na_list,
                               'path': self.data_path}
-            job_name = "cn-sgmc_" + str(count)
-            a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                            "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                            "/basic_launcher.py",
-                            python_options)
+            if self.machine == 'savio':
+                job_name = "cn-sgmc_" + str(count)
+                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                "/basic_launcher.py",
+                                python_options)
+            elif self.machine == 'lawrencium':
+                job_name = "smol_" + str(count)
+                a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                     "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                     "/basic_launcher.py",
+                                     python_options)
+            else:
+                raise ValueError('Need to specify machine correctly')
             a.write_script()
             os.chdir(path_directory)
             subprocess.call(["sbatch", "job.sh"])
@@ -171,11 +186,18 @@ class sgmcScriptor:
                                   'ca_dmu': self.ca_range[0],
                                   'na_dmu': chempo,
                                   'path': self.data_path}
-                job_name = "na_scan_" + str(count)
-                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                "/basic_launcher.py",
-                                python_options)
+                if self.machine == 'savio':
+                    job_name = "na_scan_" + str(count)
+                    a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                    "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                    "/basic_launcher.py",
+                                    python_options)
+                elif self.machine == 'lawrencium':
+                    job_name = "na_scan_" + str(count)
+                    a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                         "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                         "/basic_launcher.py",
+                                         python_options)
                 a.write_script()
                 os.chdir(path_directory)
                 subprocess.call(["sbatch", "job.sh"])
@@ -194,11 +216,18 @@ class sgmcScriptor:
                                   'ca_dmu': chempo,
                                   'na_dmu': self.na_range[0],
                                   'path': self.data_path}
-                job_name = "ca_scan_" + str(count)
-                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                "/basic_launcher.py",
-                                python_options)
+                if self.machine == 'savio':
+                    job_name = "ca_scan_" + str(count)
+                    a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                    "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                    "/basic_launcher.py",
+                                    python_options)
+                elif self.machine == 'lawrencium':
+                    job_name = "ca_scan_" + str(count)
+                    a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                         "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                         "/basic_launcher.py",
+                                         python_options)
                 a.write_script()
                 os.chdir(path_directory)
                 subprocess.call(["sbatch", "job.sh"])
@@ -234,16 +263,17 @@ def main():
 
     # test.one_cation_scan()
 
-    # ca_range = [-30]
-    # na_range = np.arange(-6.0, -2.0, 0.04)
-    # test = sgmcScriptor(ca_range, na_range)
-    # test.general_scan()
+    ca_range = [-30]
+    na_range = np.arange(-6.0, -2.0, 0.04)
+    test = sgmcScriptor('lawrencium', ca_range, na_range)
+    test.general_scan()
 
     # ca_range = np.arange(-10.0, -5.0, 0.05)
     # na_range = [-3.64]
     # test = sgmcScriptor(ca_range, na_range)
     # test.general_scan()
 
+    """
     voltage_range = np.linspace(1.5, 3.0, 100)
     ca_range, na_range = [], []
     for i in voltage_range:
@@ -254,6 +284,7 @@ def main():
 
     test = sgmcScriptor(ca_range, na_range)
     test.general_scan(option='match')
+    """
 
 
 if __name__ == '__main__':
