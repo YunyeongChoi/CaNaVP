@@ -266,7 +266,7 @@ def main():
     ca_range = [-30]
     na_range = np.arange(-6.0, -2.0, 0.04)
     test = sgmcScriptor('lawrencium', ca_range, na_range)
-    test.general_scan()
+    test.general_scan(option='general')
 
     # ca_range = np.arange(-10.0, -5.0, 0.05)
     # na_range = [-3.64]

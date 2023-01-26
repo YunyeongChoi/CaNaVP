@@ -87,7 +87,8 @@ class LawrenciumWriter(ScriptWriter):
         if self.calculation_type == "python":
             launch_line = 'module load intel/2020.1.024.par\n'
             # Can be designate env if needed in the future.
-            launch_line += 'conda activate smol\n'
+            launch_line += 'source /global/home/users/yychoi94/miniconda3/etc/profile.d/conda.sh\n'
+            launch_line += 'conda activate cn-sgmc\n'
             launch_line += 'ulimit -s unlimited\n'
             launch_line += '\n'
             launch_line += 'python {} {}> result.out\n'.format(self.python_script_name,
