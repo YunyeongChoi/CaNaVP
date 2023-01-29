@@ -45,7 +45,7 @@ class gcmcabc(metaclass=ABCMeta):
         self.ensemble_file_path = ensemble_file_path
 
         if self.savepath is None:
-            if self.machine == "savio":
+            if self.machine == "savio" or self.machine == "lawrencium":
                 self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
             else:
                 raise ValueError("Check machine or savepath option.")

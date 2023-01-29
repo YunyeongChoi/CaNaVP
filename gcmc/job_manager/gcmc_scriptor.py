@@ -31,7 +31,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/test"
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/300Na1to3"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -151,7 +151,7 @@ class sgmcScriptor:
                 job_name = "smol_" + str(count)
                 a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
                                      "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                     "/basic_launcher.py",
+                                     "/basic_launcher_temp.py",
                                      python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
@@ -264,7 +264,7 @@ def main():
     # test.one_cation_scan()
 
     ca_range = [-30]
-    na_range = np.arange(-6.0, -2.0, 0.04)
+    na_range = np.linspace(-4.72, -3.2, 100)
     test = sgmcScriptor('lawrencium', ca_range, na_range)
     test.general_scan(option='general')
 
