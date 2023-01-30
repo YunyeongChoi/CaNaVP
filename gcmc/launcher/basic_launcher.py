@@ -121,8 +121,8 @@ class gcmc_basic(gcmcabc):
                            hdf5 if want to save entire sampler.samples object.
         """
 
-        # init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_30_432_occu.npy')
-        init_occu = self.initialized_structure()
+        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_Na3_occu.npy')
+        #  init_occu = self.initialized_structure()
 
         for dmu in self.dmus:
             chempo = {'Na+': dmu[1], 'Ca2+': dmu[0], 'Vacancy': 0, 'V3+': 0, 'V4+': 0, 'V5+': 0}
@@ -261,7 +261,7 @@ if __name__ == '__main__':
     parser.add_argument('--path', type=str, required=False, default=None,
                         help="Path want to save")
     args = parser.parse_args()
-    main(machine="savio",
+    main(machine="lawrencium",
          ca_dmu=args.ca_dmu,
          na_dmu=args.na_dmu,
          savepath=args.path,
