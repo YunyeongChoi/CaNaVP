@@ -23,16 +23,16 @@ class launcher(object):
 
         self.machine = machine
         if calc_dir is None:
-            if self.machine == 'savio':
-                self.calc_dir = '/global/scratch/users/yychoi94/CaNaVP/setup'
+            if self.machine in ['savio', 'lawrencium']:
+                self.calc_dir = '/global/scratch/users/yychoi94/CaNaVP_DFT'
             elif self.machine == 'cori':
-                self.calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP/setup'
+                self.calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP_DFT'
             elif self.machine == 'stampede2':
-                self.calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP/setup'
+                self.calc_dir = '/scratch/06991/tg862905/JCESR/CaNaVP_DFT'
             elif self.machine == 'YUN':
-                self.calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP/setup'
+                self.calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP_DFT'
             elif self.machine == 'bridges2':
-                self.calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP/setup'
+                self.calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP_DFT'
             else:
                 warnings.warn("Check machine option", DeprecationWarning)
             if not os.path.exists(self.calc_dir):
@@ -40,7 +40,7 @@ class launcher(object):
         else:
             self.calc_dir = calc_dir
 
-        if hpc not in ['savio', 'cori', 'stampede2', 'bridges2']:
+        if hpc not in ['savio', 'cori', 'stampede2', 'bridges2', 'lawrencium']:
             warnings.warn("Check hpc option", DeprecationWarning)
         self.hpc = hpc
 
@@ -56,7 +56,6 @@ class launcher(object):
             warnings.warn("Check input option", DeprecationWarning)
         self.continuous = continuous
 
-        self.calc_dir = os.path.join(self.calc_dir, 'calc')
         # Target json file to run.
         self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
 
@@ -80,7 +79,7 @@ class launcher(object):
             detailed_spec_list = glob(i + "*/")
             for j in detailed_spec_list:
                 # Only ground state and it's HE variances.
-                if str(1) in j.split("/")[-2]:
+                if str(0) in j.split("/")[-2]:
                     count += 1
                     os.chdir(j)
                     inputgenerator = InputGen(self.machine,
@@ -89,7 +88,7 @@ class launcher(object):
                                               self.option,
                                               True)
                     inputgenerator.at_once()
-                    call(['sbatch', 'job.sh'])
+                    # call(['sbatch', 'job.sh'])
                     print("{} launched".format(j))
 
         print("total {} launched.".format(count))
@@ -101,10 +100,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', type=str, required=False, default='YUN',
                         help="Machine that want to run this python file. Yun, cori, stampede2, "
-                             "bridges2, savio are available.")
+                             "bridges2, savio, lawrencium are available.")
     parser.add_argument('-p', type=str, required=False, default='savio',
                         help="HPC that want to run DFT calculation. cori, stampede2, "
-                             "bridges2, savio are available.")
+                             "bridges2, savio, lawrencium are available.")
     parser.add_argument('-o', type=str, required=False, default='fast',
                         help="Option for DFT calculation. fast or full.")
     parser.add_argument('-i', type=bool, required=False, default=True,
@@ -119,6 +118,6 @@ if __name__ == '__main__':
 
     # Need to test argument parser type checker.
     lj = launcher(args.m, args.p, args.o, args.i, args.c)
-    lj.poscar_setter()
+    # lj.poscar_setter()
     if args.l:
         lj.launch_jobs()

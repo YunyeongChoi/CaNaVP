@@ -30,13 +30,11 @@ __basestructure__ = os.path.join(__setupdir__, "Na4V2(PO4)3_POSCAR")
 
 
 def read_json(fjson):
-
     with open(fjson) as f:
         return json.load(f)
 
 
 def write_json(d, fjson):
-
     with open(fjson, 'w') as f:
         json.dump(d, f)
     return d
@@ -469,7 +467,7 @@ class InputGen:
 
         return False
 
-    def get_incar(self, ISIF = 3, U = True) -> None:
+    def get_incar(self, ISIF=3, U=True) -> None:
         """
         Args:
             ISIF: 3 for structural optimization, 2 for NEB
@@ -486,7 +484,7 @@ class InputGen:
         if self.convergence_option == 'full':
             additional = {'EDIFFG': -1e-2,
                           'EDIFF': 1e-5,
-                          'NPAR': 16,
+                          'NPAR': 4,
                           'NSW': 600,
                           'IBRION': 2}
         elif self.convergence_option == 'fast':
@@ -538,14 +536,14 @@ class InputGen:
         fkpoints = os.path.join(self.calc_dir, 'KPOINTS')
         s = Structure.from_file(os.path.join(self.calc_dir, 'POSCAR'))
         if self.convergence_option == 'full':
-            Kpoints().automatic_density(s, kppa=1000).write_file(fkpoints)
+            Kpoints().automatic_density(s, kppa=1500).write_file(fkpoints)
         else:
             Kpoints().gamma_automatic().write_file(fkpoints)
 
     def get_potcar(self) -> None:
 
         obj = VASPSetUp(self.calc_dir)
-        obj.potcar(machine=self.machine, MP=True)
+        obj.potcar(specific_pots={'V': 'V_pv'}, machine=self.machine, MP=True)
 
     @property
     def get_jobname(self) -> str:
@@ -556,9 +554,9 @@ class InputGen:
 
     def get_sub(self):
 
-        nodes = 4
-        ntasks = 256
-        walltime = '12:00:00'
+        nodes = 2
+        ntasks = 56
+        walltime = '24:00:00'
         err_file = 'log.e'
         out_file = 'log.o'
         options = {'error': err_file,
@@ -616,6 +614,21 @@ class InputGen:
             launch_line = '    srun -n {} /global/homes/y/yychoi/bin/VASP_20190930/KNL/vasp.5.4' \
                           '.4_vtst178_with_DnoAugXCMeta/vasp_std_knl > vasp.out\n'.format(ntasks)
 
+        elif self.hpc == 'lawrencium':
+
+            account = 'lr_ceder'
+            qos = 'condo_ceder'
+            partition = 'lr5'
+            options['account'] = account
+            options['qos'] = qos
+            options['partition'] = partition
+            launch_line = 'module load intel/2018.1.163\n'
+            launch_line += 'module load openmpi/3.0.1-intel\n'
+            launch_line += 'module load mkl\n'
+            launch_line += 'ulimit -s unlimited\n'
+            launch_line += 'mpirun -np {} /global/home/users/yychoi94/bin/lawrencium_vasp544_bin' \
+                           '/vasp.5.4.4_vtst178_with_DnoAugXCMeta/vasp_std_vtstTag\n'.format(ntasks)
+
         else:
             launch_line = ''
             warnings.warn("Check hps option", DeprecationWarning)
@@ -631,6 +644,7 @@ class InputGen:
                     option = str(option)
                     f.write('%s --%s=%s\n' % ('#SBATCH', tag, option))
             f.write('\n')
+            """
             if self.continuous_option:
                 line = 'mkdir U; cd U;\n'
                 line += "IsConv=`grep 'required accuracy' OUTCAR`;\n"
@@ -640,6 +654,16 @@ class InputGen:
                 line += '        cp ../{KPOINTS,POTCAR,POSCAR} .;\n'
                 line += '    fi\n'
                 line += '    cp ../INCAR .;\n'
+                f.write(line)
+                f.write(launch_line)
+                line = 'fi'
+                f.write(line)
+                f.close()
+            """
+            if self.continuous_option:
+                line = 'mkdir U; cd U;\n'
+                line += 'if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
+                line += 'cp ../{INCAR,POTCAR,KPOINTS} .;\n'
                 f.write(line)
                 f.write(launch_line)
                 line = 'fi'
