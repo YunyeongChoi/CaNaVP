@@ -88,7 +88,7 @@ class launcher(object):
                                               self.option,
                                               True)
                     inputgenerator.at_once()
-                    # call(['sbatch', 'job.sh'])
+                    call(['sbatch', 'job.sh'])
                     print("{} launched".format(j))
 
         print("total {} launched.".format(count))

@@ -457,7 +457,7 @@ class InputGen:
     def get_U(self):
 
         U_els = {'Co': 3.32, 'Cr': 3.7, 'Fe': 5.3, 'Mn': 3.9,
-                 'Mo': 4.38, 'Ni': 6.2, 'V': 3.25, 'W': 6.2}
+                 'Mo': 4.38, 'Ni': 6.2, 'V': 4.2, 'W': 6.2}
         els = VASPSetUp(self.calc_dir).ordered_els_from_poscar()
         U = {el: {'L': 2 if el in U_els.keys() else 0,
                   'U': U_els[el] if el in U_els.keys() else 0} for el in els}
@@ -480,10 +480,11 @@ class InputGen:
         # Warning if OSZICAR exists, but WAVECAR not exists.
         """
         vsu = VASPSetUp(self.calc_dir)
+        nsites = vsu.nsites
 
         if self.convergence_option == 'full':
             additional = {'EDIFFG': -1e-2,
-                          'EDIFF': 1e-5,
+                          'EDIFF': round(1e-7 * nsites, 9),
                           'NPAR': 4,
                           'NSW': 600,
                           'IBRION': 2}
@@ -627,7 +628,7 @@ class InputGen:
             launch_line += 'module load mkl\n'
             launch_line += 'ulimit -s unlimited\n'
             launch_line += 'mpirun -np {} /global/home/users/yychoi94/bin/lawrencium_vasp544_bin' \
-                           '/vasp.5.4.4_vtst178_with_DnoAugXCMeta/vasp_std_vtstTag\n'.format(ntasks)
+                           '/vasp.5.4.4_vtst178_with_DnoAugXCMeta/vasp_std_vtstTag > vasp.out\n'.format(ntasks)
 
         else:
             launch_line = ''
@@ -666,8 +667,6 @@ class InputGen:
                 line += 'cp ../{INCAR,POTCAR,KPOINTS} .;\n'
                 f.write(line)
                 f.write(launch_line)
-                line = 'fi'
-                f.write(line)
                 f.close()
             else:
                 line = 'mkdir U; cd U;\n'
