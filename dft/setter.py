@@ -529,6 +529,8 @@ class InputGen:
         additional['LWAVE'] = "TRUE"
         # For electronic step convergence.
         additional['ALGO'] = "All"
+        additional['LPLANE'] = "FALSE"
+        additional['KPAR'] = 2
 
         vsu.incar(is_geometry_opt=True, mag='fm', additional=additional)
 
@@ -557,7 +559,7 @@ class InputGen:
 
         nodes = 2
         ntasks = 56
-        walltime = '24:00:00'
+        walltime = '48:00:00'
         err_file = 'log.e'
         out_file = 'log.o'
         options = {'error': err_file,
@@ -617,18 +619,20 @@ class InputGen:
 
         elif self.hpc == 'lawrencium':
 
+            # This is using vasp63 version.
             account = 'lr_ceder'
             qos = 'condo_ceder'
             partition = 'lr5'
             options['account'] = account
             options['qos'] = qos
             options['partition'] = partition
-            launch_line = 'module load intel/2018.1.163\n'
-            launch_line += 'module load openmpi/3.0.1-intel\n'
-            launch_line += 'module load mkl\n'
+            # launch_line = '    module load intel/2018.1.163\n'
+            # launch_line += '    module load openmpi/3.0.1-intel\n'
+            # launch_line += '    module load mkl\n'
+            launch_line = 'export OMP_NUM_THREADS=1\n'
+            launch_line += 'module load intel/2020.1.024.par\n'
             launch_line += 'ulimit -s unlimited\n'
-            launch_line += 'mpirun -np {} /global/home/users/yychoi94/bin/lawrencium_vasp544_bin' \
-                           '/vasp.5.4.4_vtst178_with_DnoAugXCMeta/vasp_std_vtstTag > vasp.out\n'.format(ntasks)
+            launch_line += 'mpirun -np {} /global/home/users/yychoi94/bin/vasp63/vasp_std > vasp.out\n'.format(ntasks)
 
         else:
             launch_line = ''
@@ -683,3 +687,4 @@ class InputGen:
         self.get_sub()
 
         return
+
