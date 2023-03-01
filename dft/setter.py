@@ -555,7 +555,7 @@ class InputGen:
 
     def get_sub(self):
 
-        nodes = 2
+        nodes = 1
         ntasks = 56
         walltime = '24:00:00'
         err_file = 'log.e'
@@ -591,17 +591,18 @@ class InputGen:
         elif self.hpc == 'savio':
 
             account = 'co_condoceder'
-            qos = 'savio_lowprio'
-            partition = 'savio3'
-            ntasks = 32
+            qos = 'condoceder_htc4_normal'
+            partition = 'savio4_htc'
+            ntasks = 56
             del options['ntasks']
+            del options['nodes']
             options['account'] = account
             options['partition'] = partition
             options['qos'] = qos
             options['ntasks-per-node'] = ntasks
             options['cpus-per-task'] = 1
-            launch_line = '    module load gcc openmpi\n'
-            launch_line += '    mpirun /global/home/users/yychoi94/bin/vasp.5.4' \
+            launch_line = 'module load gcc openmpi\n'
+            launch_line += 'mpirun /global/home/users/yychoi94/bin/vasp.5.4' \
                            '.4_vtst178_with_DnoAugXCMeta/vasp_std > vasp.out\n'
 
         elif self.hpc == 'cori':

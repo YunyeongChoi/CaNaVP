@@ -24,7 +24,7 @@ class launcher(object):
         self.machine = machine
         if calc_dir is None:
             if self.machine in ['savio', 'lawrencium']:
-                self.calc_dir = '/global/scratch/users/yychoi94/CaNaVP_DFT'
+                self.calc_dir = '/global/scratch/users/yychoi94/CaNaVP_DFT_rigorous'
             elif self.machine == 'cori':
                 self.calc_dir = '/global/cscratch1/sd/yychoi/JCESR/CaNaVP_DFT'
             elif self.machine == 'stampede2':
@@ -57,7 +57,7 @@ class launcher(object):
         self.continuous = continuous
 
         # Target json file to run.
-        self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
+        # self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
 
     def poscar_setter(self) -> None:
 
@@ -79,7 +79,7 @@ class launcher(object):
             detailed_spec_list = glob(i + "*/")
             for j in detailed_spec_list:
                 # Only ground state and it's HE variances.
-                if str(0) in j.split("/")[-2]:
+                if str(1) in j.split("/")[-2]:
                     count += 1
                     os.chdir(j)
                     inputgenerator = InputGen(self.machine,
