@@ -557,8 +557,8 @@ class InputGen:
 
     def get_sub(self):
 
-        nodes = 1
-        ntasks = 56
+        nodes = 2
+        ntasks = 72
         walltime = '48:00:00'
         err_file = 'log.e'
         out_file = 'log.o'

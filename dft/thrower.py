@@ -81,7 +81,7 @@ class launcher(object):
             detailed_spec_list = glob(i + "*/")
             for j in detailed_spec_list:
                 # Only ground state and it's HE variances.
-                if str(1) in j.split("/")[-2]:
+                if str(3) in j.split("/")[-2]:
                     count += 1
                     os.chdir(j)
                     inputgenerator = InputGen(self.machine,
