@@ -558,7 +558,7 @@ class InputGen:
     def get_sub(self):
 
         nodes = 2
-        ntasks = 56
+        ntasks = 72
         walltime = '48:00:00'
         err_file = 'log.e'
         out_file = 'log.o'
@@ -634,6 +634,16 @@ class InputGen:
             launch_line += 'ulimit -s unlimited\n'
             launch_line += 'mpirun -np {} /global/home/users/yychoi94/bin/vasp63/vasp_std > vasp.out\n'.format(ntasks)
 
+        elif self.hpc == 'eagle':
+
+            account = 'synpred'
+            options['account'] = account
+            # del options['nodes']
+            launch_line = 'export OMP_NUM_THREADS=1\n'
+            launch_line += 'module load intel-mpi/2020.1.217\n'
+            launch_line += 'module load mkl\n'
+            launch_line += 'srun -n {} /home/yychoi/bin/vasp63/Eagle/vasp_std > vasp.out\n'.format(ntasks)
+
         else:
             launch_line = ''
             warnings.warn("Check hps option", DeprecationWarning)
@@ -668,7 +678,7 @@ class InputGen:
             if self.continuous_option:
                 line = 'mkdir U; cd U;\n'
                 line += 'if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
-                line += 'cp ../{INCAR,POTCAR,KPOINTS} .;\n'
+                line += 'cp ../{INCAR,POTCAR,POSCAR,KPOINTS} .;\n'
                 f.write(line)
                 f.write(launch_line)
                 f.close()
@@ -678,6 +688,7 @@ class InputGen:
                 f.write(line)
                 f.write(launch_line)
                 f.close()
+            
 
     def at_once(self):
 

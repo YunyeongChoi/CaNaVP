@@ -33,6 +33,8 @@ class launcher(object):
                 self.calc_dir = '/Users/yun/Desktop/github_codes/CaNaVP_DFT'
             elif self.machine == 'bridges2':
                 self.calc_dir = '/ocean/projects/dmr060032p/yychoi/CaNaVP_DFT'
+            elif self.machine == 'eagle':
+                self.calc_dir = '/scratch/yychoi/CaNaVP_DFT'
             else:
                 warnings.warn("Check machine option", DeprecationWarning)
             if not os.path.exists(self.calc_dir):
@@ -57,7 +59,7 @@ class launcher(object):
         self.continuous = continuous
 
         # Target json file to run.
-        self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
+        # self.resultjson = read_json(os.path.join(self.calc_dir, 'result.json'))
 
     def poscar_setter(self) -> None:
 
@@ -79,7 +81,7 @@ class launcher(object):
             detailed_spec_list = glob(i + "*/")
             for j in detailed_spec_list:
                 # Only ground state and it's HE variances.
-                if str(2) in j.split("/")[-2]:
+                if str(3) in j.split("/")[-2]:
                     count += 1
                     os.chdir(j)
                     inputgenerator = InputGen(self.machine,
