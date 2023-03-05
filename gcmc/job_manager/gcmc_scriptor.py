@@ -31,7 +31,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/300Na1to3"
+            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/rough_scan/300K_28"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -116,9 +116,9 @@ class sgmcScriptor:
             test.main()
         """
         if option == 'general':
-            chempo_list = self.splitter(4)
+            chempo_list = self.splitter(8)
         elif option == 'match':
-            chempo_list = self.match_splitter(4)
+            chempo_list = self.match_splitter(8)
         else:
             raise ValueError('not supported option')
         count = 0
@@ -263,9 +263,9 @@ def main():
 
     # test.one_cation_scan()
 
-    ca_range = [-30]
-    na_range = np.linspace(-4.72, -3.2, 100)
-    test = sgmcScriptor('lawrencium', ca_range, na_range)
+    ca_range = np.linspace(-9.0, -5.0, 50)
+    na_range = [-2.8]
+    test = sgmcScriptor('savio', ca_range, na_range)
     test.general_scan(option='general')
 
     # ca_range = np.arange(-10.0, -5.0, 0.05)

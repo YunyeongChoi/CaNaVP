@@ -121,7 +121,7 @@ class gcmc_basic(gcmcabc):
                            hdf5 if want to save entire sampler.samples object.
         """
 
-        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_Na3_occu.npy')
+        init_occu = self.initialized_structure(from_occu='/global/scratch/users/yychoi94/CaNaVP/notebooks/300_Na1_occu.npy')
         #  init_occu = self.initialized_structure()
 
         for dmu in self.dmus:
@@ -203,7 +203,7 @@ def main(machine,
          savepath=None,
          ca_amt=0.5,
          na_amt=1.0,
-         steps=3000000,
+         steps=7000000,
          temperature=300,
          thin_by=10,
          discard=0

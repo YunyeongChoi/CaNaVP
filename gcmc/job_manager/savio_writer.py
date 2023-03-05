@@ -11,7 +11,7 @@ class SavioWriter(ScriptWriter):
                  python_options=None):
 
         super().__init__("savio", calculation_type, file_path, job_name)
-        self._account = 'fc_ceder'
+        self._account = 'co_condoceder'
         if self._account == 'fc_ceder':
             self._partition = 'savio3'
             self._qos = 'savio_normal'
@@ -79,12 +79,22 @@ class SavioWriter(ScriptWriter):
     def punchline(self):
 
         if self.calculation_type == "python":
-            launch_line = 'module load python/3.9.12\n'
+            # launch_line = 'module load python/3.9.12\n'
             # Can be designate env if needed in the future.
-            launch_line += 'source activate cn-sgmc\n'
+            # launch_line += 'source activate smol\n'
+            # Load MPI modules
+            launch_line = 'module load intel/2016.4.072\n'
+            launch_line += 'module load mkl/2016.4.072\n'
+            launch_line += 'module load openmpi/2.0.2-intel\n'
+
+            # Load conda env
+            launch_line += 'source /global/home/users/yychoi94/miniconda3/etc/profile.d/conda.sh\n'
+            launch_line += 'conda activate cn-sgmc\n'
+            launch_line += 'ulimit -s unlimited\n'
             launch_line += 'python {} {}> result.out\n'.format(self.python_script_name,
                                                                self.pythonoptionmaker())
         else:
+            #TODO change to vasp 63
             launch_line = 'mpirun -n {} /global/home/users/yychoi94/bin/vasp.5.4.4_vtst178_' \
                           'with_DnoAugXCMeta/vasp_std > vasp.out\n'.format(self._ntasks)
 
