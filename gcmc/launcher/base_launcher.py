@@ -47,6 +47,8 @@ class gcmcabc(metaclass=ABCMeta):
         if self.savepath is None:
             if self.machine == "savio" or self.machine == "lawrencium":
                 self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
+            elif self.machine == "eagle":
+                self.savepath = '/scratch/yychoi/CaNaVP_gcMC'
             else:
                 raise ValueError("Check machine or savepath option.")
             if not os.path.exists(self.savepath):
@@ -63,12 +65,21 @@ class gcmcabc(metaclass=ABCMeta):
                 self.savepath = os.path.join(self.savepath, self.savename)
 
         if self.ce_file_path is None:
-            self.ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/ce' \
-                                '/final_canvp_ce.mson'
+            if self.machine == 'savio' or self.machine == 'lawrencium':
+                self.ce_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/ce' \
+                                    '/final_canvp_ce.mson'
+            elif self.machine == 'eagle':
+                self.ce_file_path = '/scratch/yychoi/CaNaVP/data/final_data/ce' \
+                                    '/final_canvp_ce.mson'
 
         if self.ensemble_file_path is None:
-            self.ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/gcmc' \
-                                      '/final_canvp_ensemble_1201.mson'
+            if self.machine == 'savio' or self.machine == 'lawrencium':
+                self.ensemble_file_path = '/global/scratch/users/yychoi94/CaNaVP/data/final_data/gcmc' \
+                                          '/final_canvp_ensemble_1201.mson'
+            elif self.machine == 'eagle':
+                self.ensemble_file_path = '/scratch/yychoi/CaNaVP/data/final_data/gcmc' \
+                                          '/final_canvp_ensemble_1201.mson'
+
 
         # This only fit to saved ensemble, ./data/final_data/gcmc/final_canvp_ensemble.mson
         # The different ensemble object can have different sublattice orderings.

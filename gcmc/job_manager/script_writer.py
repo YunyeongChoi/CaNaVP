@@ -21,7 +21,7 @@ class ScriptWriter(metaclass=ABCMeta):
         self._node = 1
         self._ntasks = 20
         self._cpus = 1
-        self._walltime = "30:00:00"
+        self._walltime = "48:00:00"
         self._err_file = "log.e"
         self._out_file = "log.o"
         self._options = {'nodes': self._node,
@@ -43,7 +43,7 @@ class ScriptWriter(metaclass=ABCMeta):
 
     @machine.setter
     def machine(self, name):
-        if name not in ["savio", "cori", "stampede", "bridges", "lawrencium"]:
+        if name not in ["savio", "cori", "stampede", "bridges", "lawrencium", "eagle"]:
             raise MachineNameError("Not in available machine list. choose one of savio, cori, "
                                    "stampede, bridges.")
         self._machine = name

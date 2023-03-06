@@ -15,6 +15,7 @@ import subprocess
 import numpy as np
 from gcmc.job_manager.savio_writer import SavioWriter
 from gcmc.job_manager.lawrencium_writer import LawrenciumWriter
+from gcmc.job_manager.eagle_writer import EagleWriter
 
 
 class sgmcScriptor:
@@ -31,7 +32,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/global/scratch/users/yychoi94/CaNaVP_gcMC/rough_scan/300K_28"
+            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/rough_scan"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -116,9 +117,9 @@ class sgmcScriptor:
             test.main()
         """
         if option == 'general':
-            chempo_list = self.splitter(8)
+            chempo_list = self.splitter(6)
         elif option == 'match':
-            chempo_list = self.match_splitter(8)
+            chempo_list = self.match_splitter(6)
         else:
             raise ValueError('not supported option')
         count = 0
@@ -153,6 +154,11 @@ class sgmcScriptor:
                                      "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
                                      "/basic_launcher_temp.py",
                                      python_options)
+            elif self.machine == 'eagle':
+                job_name = 'cn-sgmc' + str(count)
+                a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
             a.write_script()
@@ -198,6 +204,11 @@ class sgmcScriptor:
                                          "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
                                          "/basic_launcher.py",
                                          python_options)
+                elif self.machine == 'eagle':
+                    job_name = 'cn-sgmc' + str(count)
+                    a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                     "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                     python_options)
                 a.write_script()
                 os.chdir(path_directory)
                 subprocess.call(["sbatch", "job.sh"])
@@ -228,6 +239,11 @@ class sgmcScriptor:
                                          "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
                                          "/basic_launcher.py",
                                          python_options)
+                elif self.machine == 'eagle':
+                    job_name = 'cn-sgmc' + str(count)
+                    a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                    "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                    python_options)
                 a.write_script()
                 os.chdir(path_directory)
                 subprocess.call(["sbatch", "job.sh"])
@@ -263,9 +279,9 @@ def main():
 
     # test.one_cation_scan()
 
-    ca_range = np.linspace(-9.0, -5.0, 50)
-    na_range = [-2.8]
-    test = sgmcScriptor('savio', ca_range, na_range)
+    ca_range = np.linspace(-9.0, -5.0, 30)
+    na_range = np.linspace(-4.8, -2.8, 30)
+    test = sgmcScriptor('eagle', ca_range, na_range)
     test.general_scan(option='general')
 
     # ca_range = np.arange(-10.0, -5.0, 0.05)
