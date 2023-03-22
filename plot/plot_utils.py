@@ -199,20 +199,32 @@ def get_reduced_traj(to_triangle=True):
 
 def new_get_traj():
 
-    traj_data_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/300K_voltage_traj.json'
+    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/energy_concen.json'
     traj_data = read_json(traj_data_path)
 
-    reduced_traj_in_tri = {}
+    translated_traj_in_tri = {}
     for i in traj_data:
-        reduced_traj_in_tri[i] = []
-        for j in traj_data[i]:
-            pt = [j[0] / 1.5, j[1] / 3, 1 - j[0] / 1.5 - j[1] / 3]
-            pt = triangle_to_square(pt)
-            reduced_traj_in_tri[i].append(pt)
+        average = traj_data[i]['average']
+        pt = [average[0] / 1.5, average[1] / 3, 1 - average[0] / 1.5 - average[1] / 3]
+        pt = triangle_to_square(pt)
+        translated_traj_in_tri[i] = pt
 
-    return reduced_traj_in_tri
+    return translated_traj_in_tri
 
+def from_energy_concen():
 
+    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/energy_concen.json'
+    traj_data = read_json(traj_data_path)
+
+    translated_traj_in_tri = {}
+    for i in traj_data:
+        na_average = traj_data[i]['Na_avg'] / 300
+        ca_average = traj_data[i]['Ca_avg'] / 300
+        pt = [ca_average / 1.5, na_average / 3, 1 - ca_average / 1.5 - na_average / 3]
+        pt = triangle_to_square(pt)
+        translated_traj_in_tri[i] = pt
+
+    return translated_traj_in_tri
 
 
 
@@ -229,5 +241,5 @@ def quick_check():
 
 if __name__ == '__main__':
 
-    print(np.arange(-6.0, -2.0, 0.04))
-    print(len(np.arange(-6.0, -2.0, 0.04)[:60]))
+    translated_traj_in_tri = from_energy_concen()
+    print(translated_traj_in_tri)

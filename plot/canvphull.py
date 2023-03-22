@@ -19,7 +19,7 @@ from plot.plot_utils import *
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, '1003_dft_fitting.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, 'final_data', 'dft', '031623_ce_data.json'))
 
 # For further use. Currently not MP compatible.
 # MP_DIR = os.path.join(DATA_DIR, '0414_MP.json')
@@ -92,7 +92,7 @@ def get_hull_data(d, remake=True) -> (dict, dict):
     return hull_data, line_data
 
 
-def ternary_pd(hull_data, line_data, exp=True, traj=True):
+def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
 
     fig = plt.figure(dpi=300)
 
@@ -113,26 +113,36 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
         for config in exp_stable_list:
             pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
             pt = triangle_to_square(pt)
-            plt.scatter(pt[0], pt[1], marker='*', s=64, color='blue', zorder=3,
+            plt.scatter(pt[0], pt[1], marker='*', s=64, color='blue', zorder=5,
                              edgecolors='black', linewidths=1)
         for config in exp_unstable_list:
             pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
             pt = triangle_to_square(pt)
-            plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=3,
+            plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=5,
                              edgecolors='black', linewidths=1)
 
     # Plotting gcMC trajectories.
     if traj:
         traj_dict = new_get_traj()
-        plt.scatter(0.5, 1.0, s=20, color='black', zorder=5)
+        plt.scatter(0.5, 1.0, s=20, color='black', zorder=6)
         for trajs in traj_dict:
             for i, pt in enumerate(traj_dict[trajs]):
                 if not i == len(traj_dict[trajs]) - 1:
                     plt.plot((traj_dict[trajs][i][0], traj_dict[trajs][i+1][0]),
                              (traj_dict[trajs][i][1], traj_dict[trajs][i+1][1]),
                              '--', linewidth=1, zorder=4, color='darkgreen')
-            plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=20, color='red',
-                        zorder=5)
+            plt.scatter(traj_dict[trajs][-1][0], traj_dict[trajs][-1][1], s=30, color='red',
+                        zorder=6)
+
+    if traj_avg:
+        traj_dict = from_energy_concen()
+        for chempo in traj_dict:
+            plt.scatter(traj_dict[chempo][0], traj_dict[chempo][1], s=30, color='red',
+                        edgecolors='black', zorder=5)
+            Ca_chempo = round(float(chempo.split('_')[0]), 2)
+            Na_chempo = round(float(chempo.split('_')[1]), 2)
+            chempo_str = str(Ca_chempo) + ', ' + str(Na_chempo)
+            plt.annotate(chempo_str, (traj_dict[chempo][0], traj_dict[chempo][1]), size=15)
 
     # Plotting ground states.
     cmpd_params = params()
@@ -143,6 +153,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
         pt = triangle_to_square(pt)
         stability = 'stable' if hull_data[cmpd]['stability'] else 'unstable'
         color, marker, alpha = [cmpd_params[stability][k] for k in ['c', 'm', 'alpha']]
+
         plt.scatter(pt[0], pt[1],
                     color='white',
                     marker=marker,
@@ -151,6 +162,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
                     alpha=alpha,
                     s=64,
                     zorder=4)
+
 
     # Plotting tie lines.
     for l in line_data:
@@ -204,7 +216,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True):
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
     # plt.show()
-    fig.savefig("/Users/yun/Desktop/github_codes/CaNaVP/data/test_traj.png")
+    fig.savefig("/Users/yun/Berkeley/Codes/CaNaVP/test/gcmc_0320_300K.png")
 
     return
 
@@ -232,5 +244,5 @@ if __name__ == '__main__':
     tc = ternary_chempo(polished_line_data, vasp_data)
     chempo_data = tc.get_chempo_at_cycles()
     # print(chempo_data)
-    ternary_pd(hull_data, line_data)
+    ternary_pd(hull_data, line_data, traj=False)
 
