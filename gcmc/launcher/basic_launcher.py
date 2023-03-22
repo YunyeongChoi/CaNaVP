@@ -260,10 +260,16 @@ if __name__ == '__main__':
                         help="List of Na chemical potentials.")
     parser.add_argument('--path', type=str, required=False, default=None,
                         help="Path want to save")
+    parser.add_argument('--step', type=int, required=False, default=10000000,
+                        help="Number of steps")
+    parser.add_argument('--temp', type=float, required=False, default=300,
+                        help="Temperature")
     args = parser.parse_args()
     main(machine="eagle",
          ca_dmu=args.ca_dmu,
          na_dmu=args.na_dmu,
          savepath=args.path,
          ca_amt=args.ca_amt,
-         na_amt=args.na_amt)
+         na_amt=args.na_amt,
+         steps=args.step,
+         temperature=args.temp)

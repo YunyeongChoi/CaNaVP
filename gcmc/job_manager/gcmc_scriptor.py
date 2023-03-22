@@ -16,21 +16,27 @@ import numpy as np
 from gcmc.job_manager.savio_writer import SavioWriter
 from gcmc.job_manager.lawrencium_writer import LawrenciumWriter
 from gcmc.job_manager.eagle_writer import EagleWriter
+from gcmc.utils import deprecated
 
 
 class sgmcScriptor:
 
-    def __init__(self, machine, ca_range, na_range, save_path=None):
+    def __init__(self, machine, ca_range, na_range, step, temp, save_path=None):
         """
         Args:
             machine: Machine want to launch calculations.
             ca_range: np.array, array of ca chemical potential to search.
             na_range: np.array, array of na chemical potential to search.
+            step: List or float.
+            temp: List or float.
             save_path: path that all directories will be saved.
         """
         self.machine = machine
         self.ca_range = ca_range
         self.na_range = na_range
+        self.step = step
+        self.temp = temp
+
         if save_path is None:
             self.save_path = "/scratch/yychoi/CaNaVP_gcMC/scan_600K"
         else:
@@ -105,7 +111,7 @@ class sgmcScriptor:
 
         return '_'.join(line)
 
-    def general_scan(self, option=''):
+    def chempo_scan(self, option=''):
         """
         Write a script.
         option - general: scan all the possible combinations in the given range of Ca/Na
@@ -113,15 +119,19 @@ class sgmcScriptor:
         usage:
             ca_range = np.arange(-10.3, -6.3, 0.5)
             na_range = np.arange(-5.4, -3.4, 0.25)
-            test = sgmcScriptor(ca_range, na_range)
+            test = sgmcScriptor(ca_range, na_range, )
             test.main()
         """
+        assert type(self.step) == float
+        assert type(self.temp) == float
+
         if option == 'general':
             chempo_list = self.splitter(6)
         elif option == 'match':
             chempo_list = self.match_splitter(6)
         else:
             raise ValueError('not supported option')
+
         count = 0
         for chempo_set in chempo_list:
             count += 1
@@ -141,7 +151,9 @@ class sgmcScriptor:
                               'na_amt': 1.0,
                               'ca_dmu': ca_list,
                               'na_dmu': na_list,
-                              'path': self.data_path}
+                              'path': self.data_path,
+                              'step': self.step,
+                              'temp': self.temp}
             if self.machine == 'savio':
                 job_name = "cn-sgmc_" + str(count)
                 a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
@@ -157,7 +169,7 @@ class sgmcScriptor:
             elif self.machine == 'eagle':
                 job_name = 'cn-sgmc' + str(count)
                 a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher_600K.py",
+                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
                                 python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
@@ -168,90 +180,16 @@ class sgmcScriptor:
 
         return
 
-    def one_cation_scan(self):
+    def temp_scan(self, chempo, temperature):
         """
-        usage:
-            ca_range = [-8.55]
-            na_range = np.linspace(-4.525, -3.3, 30)
-            test = sgmcScriptor(ca_range, na_range)
-            test.one_cation_scan()
-        TODO: Delete this.
+        Args:
+            chempo: Tuple of chemical potentials. First is Ca, Second is Na.
+            temperature: List or array of temperature want to run jobs.
+        Returns:
+            Directories under target directory, including job scripts and launcher python file.
+        Note:
+        TODO: Make launcher_writer to prevent trash like codes.
         """
-        count = 0
-        if len(self.ca_range) == 1:
-            for chempo in self.na_range:
-                count += 1
-                if count < 10:
-                    path_directory = os.path.join(self.save_path, str(0) + str(count))
-                else:
-                    path_directory = os.path.join(self.save_path, str(count))
-                if not os.path.exists(path_directory):
-                    os.mkdir(path_directory)
-                python_options = {'ca_amt': 0.5,
-                                  'na_amt': 1.0,
-                                  'ca_dmu': self.ca_range[0],
-                                  'na_dmu': chempo,
-                                  'path': self.data_path}
-                if self.machine == 'savio':
-                    job_name = "na_scan_" + str(count)
-                    a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                    "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                    "/basic_launcher.py",
-                                    python_options)
-                elif self.machine == 'lawrencium':
-                    job_name = "na_scan_" + str(count)
-                    a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                         "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                         "/basic_launcher.py",
-                                         python_options)
-                elif self.machine == 'eagle':
-                    job_name = 'cn-sgmc' + str(count)
-                    a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                     "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
-                                     python_options)
-                a.write_script()
-                os.chdir(path_directory)
-                subprocess.call(["sbatch", "job.sh"])
-                print("{} launched".format(job_name))
-        elif len(self.na_range) == 1:
-            for chempo in self.ca_range:
-                count += 1
-                if count < 10:
-                    path_directory = os.path.join(self.save_path, str(0) + str(count))
-                else:
-                    path_directory = os.path.join(self.save_path, str(count))
-                if not os.path.exists(path_directory):
-                    os.mkdir(path_directory)
-                python_options = {'ca_amt': 0.5,
-                                  'na_amt': 1.0,
-                                  'ca_dmu': chempo,
-                                  'na_dmu': self.na_range[0],
-                                  'path': self.data_path}
-                if self.machine == 'savio':
-                    job_name = "ca_scan_" + str(count)
-                    a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                    "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                    "/basic_launcher.py",
-                                    python_options)
-                elif self.machine == 'lawrencium':
-                    job_name = "ca_scan_" + str(count)
-                    a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                         "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
-                                         "/basic_launcher.py",
-                                         python_options)
-                elif self.machine == 'eagle':
-                    job_name = 'cn-sgmc' + str(count)
-                    a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                    "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
-                                    python_options)
-                a.write_script()
-                os.chdir(path_directory)
-                subprocess.call(["sbatch", "job.sh"])
-                print("{} launched".format(job_name))
-        elif len(self.ca_range) > 1 and len(self.na_range) > 1:
-            raise ValueError("This assume only one chemical potential change")
-        else:
-            raise ValueError("Set chemical potential properly")
 
         return
 
@@ -279,17 +217,20 @@ def main():
 
     # test.one_cation_scan()
 
+    """
     ca_range = np.linspace(-9.0, -5.0, 41)
     na_range = np.linspace(-4.8, -2.8, 41)
     # ca_range = np.linspace(-10.0, -9.1, 10)
     # na_range = np.linspace(-5.3, -4.85, 10)
-    test = sgmcScriptor('eagle', ca_range, na_range)
-    test.general_scan(option='general')
+    test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300)
+    test.chempo_scan(option='general')
+    """
 
-    # ca_range = np.arange(-10.0, -5.0, 0.05)
-    # na_range = [-3.64]
-    # test = sgmcScriptor(ca_range, na_range)
-    # test.general_scan()
+    # For testing purpose
+    ca_range = [-5.2]
+    na_range = [-4.0]
+    test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300)
+    test.chempo_scan(option='general')
 
     """
     voltage_range = np.linspace(1.5, 3.0, 100)
