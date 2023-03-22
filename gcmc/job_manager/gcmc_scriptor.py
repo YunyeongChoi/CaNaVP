@@ -27,7 +27,7 @@ class sgmcScriptor:
             machine: Machine want to launch calculations.
             ca_range: np.array, array of ca chemical potential to search.
             na_range: np.array, array of na chemical potential to search.
-            step: List or float.
+            step: List or int
             temp: List or float.
             save_path: path that all directories will be saved.
         """
@@ -38,7 +38,7 @@ class sgmcScriptor:
         self.temp = temp
 
         if save_path is None:
-            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/scan_600K"
+            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/test"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -119,10 +119,10 @@ class sgmcScriptor:
         usage:
             ca_range = np.arange(-10.3, -6.3, 0.5)
             na_range = np.arange(-5.4, -3.4, 0.25)
-            test = sgmcScriptor(ca_range, na_range, )
+            test = sgmcScriptor(ca_range, na_range, step, temp)
             test.main()
         """
-        assert type(self.step) == float
+        assert type(self.step) == int
         assert type(self.temp) == float
 
         if option == 'general':
@@ -180,7 +180,7 @@ class sgmcScriptor:
 
         return
 
-    def temp_scan(self, chempo, temperature):
+    def temp_scan(self, chempo, temperature, step=None):
         """
         Args:
             chempo: Tuple of chemical potentials. First is Ca, Second is Na.
@@ -190,6 +190,11 @@ class sgmcScriptor:
         Note:
         TODO: Make launcher_writer to prevent trash like codes.
         """
+        assert type(temperature) == List
+        if step is not None:
+            assert type(step) == List
+        
+
 
         return
 
@@ -229,7 +234,7 @@ def main():
     # For testing purpose
     ca_range = [-5.2]
     na_range = [-4.0]
-    test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300)
+    test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300.0)
     test.chempo_scan(option='general')
 
     """
