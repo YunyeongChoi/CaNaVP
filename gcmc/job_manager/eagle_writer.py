@@ -21,7 +21,7 @@ class EagleWriter(ScriptWriter):
         super().__init__("eagle", calculation_type, file_path, job_name)
         self._account = 'saepssic'
         if self._account == 'synpred' or 'saepssic':
-            self._qos = 'high'
+            self._qos = 'normal'
             self.ntasks = 36 * self.node
             self.options.pop('cpus-per-task', None)
 

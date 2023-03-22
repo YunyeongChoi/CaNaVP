@@ -637,7 +637,7 @@ class InputGen:
 
         elif self.hpc == 'eagle':
 
-            account = 'synpred'
+            account = 'saepssic'
             options['account'] = account
             # del options['nodes']
             launch_line = 'export OMP_NUM_THREADS=1\n'
@@ -679,7 +679,7 @@ class InputGen:
             if self.continuous_option:
                 line = 'mkdir U; cd U;\n'
                 line += 'if [ -s "CONTCAR" ]; then cp CONTCAR POSCAR; fi;\n'
-                line += 'cp ../{INCAR,POTCAR,POSCAR,KPOINTS} .;\n'
+                line += 'cp ../{INCAR,POTCAR,KPOINTS} .;\n'
                 f.write(line)
                 f.write(launch_line)
                 f.close()

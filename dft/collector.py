@@ -12,7 +12,7 @@ from dft.setter import write_json
 def main(calc_dir) -> None:
 
     # Target json file to run.
-    groundjson = os.path.join(calc_dir, 'result_1s.json')
+    groundjson = os.path.join(calc_dir, 'result_4s.json')
 
     count = 0
     groundcount = 0
@@ -23,7 +23,7 @@ def main(calc_dir) -> None:
         detailed_spec_list = glob(i + "*/")
         for j in detailed_spec_list:
             # Only ground state and it's HE variances.
-            if str(1) in j.split("/")[-2]:
+            if str(4) in j.split("/")[-2]:
                 count += 1
                 print(j)
                 spec = {}
@@ -71,5 +71,5 @@ def get_all_magmoms(calc_dir) -> None:
 
 if __name__ == '__main__':
 
-    main("/global/scratch/users/yychoi94/CaNaVP/setup/calc")
+    main("/scratch/yychoi/CaNaVP_DFT_34")
     # get_all_magmoms("/global/scratch/users/yychoi94/CaNaVP/setup/calc")

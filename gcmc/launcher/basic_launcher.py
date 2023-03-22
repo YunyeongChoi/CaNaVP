@@ -204,7 +204,7 @@ def main(machine,
          ca_amt=0.5,
          na_amt=1.0,
          steps=10000000,
-         temperature=600,
+         temperature=300,
          thin_by=10,
          discard=0
          ):

@@ -32,7 +32,7 @@ class sgmcScriptor:
         self.ca_range = ca_range
         self.na_range = na_range
         if save_path is None:
-            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/rough_scan"
+            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/scan_600K"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -157,7 +157,7 @@ class sgmcScriptor:
             elif self.machine == 'eagle':
                 job_name = 'cn-sgmc' + str(count)
                 a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher_600K.py",
                                 python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
@@ -279,8 +279,10 @@ def main():
 
     # test.one_cation_scan()
 
-    ca_range = np.linspace(-9.0, -5.0, 30)
-    na_range = np.linspace(-4.8, -2.8, 30)
+    ca_range = np.linspace(-9.0, -5.0, 41)
+    na_range = np.linspace(-4.8, -2.8, 41)
+    # ca_range = np.linspace(-10.0, -9.1, 10)
+    # na_range = np.linspace(-5.3, -4.85, 10)
     test = sgmcScriptor('eagle', ca_range, na_range)
     test.general_scan(option='general')
 
@@ -306,3 +308,4 @@ def main():
 if __name__ == '__main__':
 
     main()
+
