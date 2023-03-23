@@ -143,6 +143,7 @@ class gcmc_basic(gcmcabc):
             flip_table = sampler.mckernels[0].mcusher.flip_table
             flip_reaction = [flip_vec_to_reaction(u, bits) for u in flip_table]
             sampler.samples.metadata['flip_reaction'] = flip_reaction
+            sampler.samples.metadata['temperature'] = self.temperature
 
             # Saving. TODO: Use flush to backend and do not call sampler everytime.
             if saving_option == "hdf5":

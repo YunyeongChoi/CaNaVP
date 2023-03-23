@@ -134,8 +134,10 @@ class sgmcScriptor:
 
         count = 0
         for chempo_set in chempo_list:
+
             count += 1
             ca_list, na_list = [], []
+
             for j in chempo_set:
                 ca_list.append(j[0])
                 na_list.append(j[1])
@@ -154,6 +156,7 @@ class sgmcScriptor:
                               'path': self.data_path,
                               'step': self.step,
                               'temp': self.temp}
+
             if self.machine == 'savio':
                 job_name = "cn-sgmc_" + str(count)
                 a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
@@ -173,6 +176,7 @@ class sgmcScriptor:
                                 python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
+
             a.write_script()
             os.chdir(path_directory)
             subprocess.call(["sbatch", "job.sh"])
@@ -180,7 +184,7 @@ class sgmcScriptor:
 
         return
 
-    def temp_scan(self, chempo, temperature, step=None):
+    def temp_scan(self):
         """
         Args:
             chempo: Tuple of chemical potentials. First is Ca, Second is Na.
@@ -190,11 +194,55 @@ class sgmcScriptor:
         Note:
         TODO: Make launcher_writer to prevent trash like codes.
         """
-        assert type(temperature) == List
-        if step is not None:
-            assert type(step) == List
-        
+        assert len(self.ca_range) == 1
+        assert len(self.na_range) == 1
+        chempo = (self.ca_range[0], self.na_range[0])
 
+        assert type(self.temp) == list
+        assert type(self.step) == list
+
+        for ith, t in enumerate(self.temp):
+
+            path_directory = os.path.join(self.save_path, str(t))
+            if not os.path.exists(path_directory):
+                os.mkdir(path_directory)
+
+            self.data_path = os.path.join(path_directory, "data")
+            if not os.path.exists(self.data_path):
+                os.mkdir(self.data_path)
+
+            python_options = {'ca_amt': 0.5,
+                              'na_amt': 1.0,
+                              'ca_dmu': chempo[0],
+                              'na_dmu': chempo[1],
+                              'path': self.data_path,
+                              'step': self.step[ith],
+                              'temp': t}
+
+            if self.machine == 'savio':
+                job_name = str(chempo[0]) + '_' + str(chempo[1]) + '_' + str(t)
+                a = SavioWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                "/basic_launcher.py",
+                                python_options)
+            elif self.machine == 'lawrencium':
+                job_name = str(chempo[0]) + '_' + str(chempo[1]) + '_' + str(t)
+                a = LawrenciumWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                     "/global/scratch/users/yychoi94/CaNaVP/gcmc/launcher"
+                                     "/basic_launcher_temp.py",
+                                     python_options)
+            elif self.machine == 'eagle':
+                job_name = str(chempo[0]) + '_' + str(chempo[1]) + '_' + str(t)
+                a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                python_options)
+            else:
+                raise ValueError('Need to specify machine correctly')
+
+            a.write_script()
+            os.chdir(path_directory)
+            # subprocess.call(["sbatch", "job.sh"])
+            print("{} launched".format(job_name))
 
         return
 
@@ -231,11 +279,21 @@ def main():
     test.chempo_scan(option='general')
     """
 
+    """
     # For testing purpose
     ca_range = [-5.2]
     na_range = [-4.0]
     test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300.0)
     test.chempo_scan(option='general')
+    """
+
+    # For testing temp_scan method
+    ca_range = [-5.2]
+    na_range = [-4.0]
+    temp_range = [20.0, 100.0, 120.0]
+    step_range = [10000, 10000, 10000]
+    test = sgmcScriptor('eagle', ca_range, na_range, step_range, temp_range)
+    test.temp_scan()
 
     """
     voltage_range = np.linspace(1.5, 3.0, 100)
