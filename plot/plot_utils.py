@@ -213,7 +213,7 @@ def new_get_traj():
 
 def from_energy_concen():
 
-    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/energy_concen.json'
+    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/600K_gcmc_old_test/energy_con_600K_0322.json'
     traj_data = read_json(traj_data_path)
 
     translated_traj_in_tri = {}

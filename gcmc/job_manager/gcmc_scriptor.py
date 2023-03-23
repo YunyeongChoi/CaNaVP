@@ -153,9 +153,10 @@ class sgmcScriptor:
                               'na_amt': 1.0,
                               'ca_dmu': ca_list,
                               'na_dmu': na_list,
-                              'path': self.data_path,
                               'step': self.step,
-                              'temp': self.temp}
+                              'temp': self.temp,
+                              'savepath': self.data_path,
+                              'occupath': "Na1"}
 
             if self.machine == 'savio':
                 job_name = "cn-sgmc_" + str(count)
@@ -196,14 +197,25 @@ class sgmcScriptor:
         """
         assert len(self.ca_range) == 1
         assert len(self.na_range) == 1
-        chempo = (self.ca_range[0], self.na_range[0])
-
         assert type(self.temp) == list
         assert type(self.step) == list
 
+        chempo = (self.ca_range[0], self.na_range[0])
+
+        if self.machine == 'eagle':
+            saved_dir = '/scratch/yychoi/CaNaVP_gcMC/scan_300K/data'
+            saved_key = chempo[0] + '_' + chempo[1] + '_occupancy.npz'
+            saved_data = os.path.join(saved_dir, saved_key)
+            occu_data = np.load(saved_data, 'o')
+            last_occu = occu_data['o'][-1]
+            occu_save_path = os.path.join(self.save_path, chempo[0] + '_' + chempo[1] + '.npy')
+            np.save(occu_save_path, last_occu)
+        else:
+            raise ValueError()
+
         for ith, t in enumerate(self.temp):
 
-            path_directory = os.path.join(self.save_path, str(t))
+            path_directory = os.path.join(self.save_path, str(int(t)))
             if not os.path.exists(path_directory):
                 os.mkdir(path_directory)
 
@@ -215,9 +227,10 @@ class sgmcScriptor:
                               'na_amt': 1.0,
                               'ca_dmu': chempo[0],
                               'na_dmu': chempo[1],
-                              'path': self.data_path,
                               'step': self.step[ith],
-                              'temp': t}
+                              'temp': t,
+                              'savepath': self.data_path,
+                              'occupath': occu_save_path}
 
             if self.machine == 'savio':
                 job_name = str(chempo[0]) + '_' + str(chempo[1]) + '_' + str(t)
@@ -252,23 +265,6 @@ class sgmcScriptor:
 
 
 def main():
-
-    # ca_range = np.arange(-10.3, -6.3, 0.5)
-    # na_range = np.arange(-5.4, -3.4, 0.25)
-    # test = sgmcScriptor(ca_range, na_range)
-    # test.main()
-
-    # ca_range = np.linspace(-8.55, -6, 30)
-    # na_range = [-4.525]
-    # test = sgmcScriptor(ca_range, na_range)
-    # test.one_cation_scan()
-
-    # ca_range = np.arange(-8.5, -7.5, 0.1)
-    # na_range = np.arange(-4.5, -3.5, 0.1)
-    # test = sgmcScriptor(ca_range, na_range)
-    # test.general_scan()
-
-    # test.one_cation_scan()
 
     """
     ca_range = np.linspace(-9.0, -5.0, 41)

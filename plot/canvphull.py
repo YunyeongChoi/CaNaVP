@@ -216,7 +216,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
     # plt.show()
-    fig.savefig("/Users/yun/Berkeley/Codes/CaNaVP/test/gcmc_0320_300K.png")
+    fig.savefig("/Users/yun/Berkeley/Codes/CaNaVP/test/gcmc_0320_600K.png")
 
     return
 

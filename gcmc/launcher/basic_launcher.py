@@ -24,6 +24,7 @@ class gcmc_basic(gcmcabc):
     def __init__(self,
                  machine,
                  dmus,
+                 occupath,
                  savepath,
                  savename,
                  ce_file_path,
@@ -38,6 +39,7 @@ class gcmc_basic(gcmcabc):
         """
         Args:
             machine: Machine that will run jobs.
+            occu: Saved occupancy file.
             dmus: list(tuple). Chemical potentials of Na, Ca that will be used.
                   First one of tuple is Na chemical potential.
             savepath: Directory want to save hdf5 file.
@@ -52,6 +54,7 @@ class gcmc_basic(gcmcabc):
             discard: Discard
         """
         super().__init__(machine, dmus, savepath, savename, ce_file_path, ensemble_file_path)
+        self.occupath = occupath
         self.ca_amt = ca_amt
         self.na_amt = na_amt
         self.steps = steps
@@ -120,9 +123,12 @@ class gcmc_basic(gcmcabc):
             saving_option: brief if want to save energy, occupancy, and species count to np file.
                            hdf5 if want to save entire sampler.samples object.
         """
-
-        init_occu = self.initialized_structure(from_occu='/scratch/yychoi/CaNaVP/notebooks/300_Na1_occu.npy')
-        #init_occu = self.initialized_structure()
+        if self.occupath == 'Na1':
+            init_occu = self.initialized_structure(from_occu='/scratch/yychoi/CaNaVP/notebooks/300_Na1_occu.npy')
+        elif self.occupath is None:
+            init_occu = self.initialized_structure()
+        else:
+            init_occu = self.initialized_structure(from_occu=self.occupath)
 
         for dmu in self.dmus:
             chempo = {'Na+': dmu[1], 'Ca2+': dmu[0], 'Vacancy': 0, 'V3+': 0, 'V4+': 0, 'V5+': 0}
@@ -201,13 +207,14 @@ class gcmc_basic(gcmcabc):
 def main(machine,
          ca_dmu=None,
          na_dmu=None,
-         savepath=None,
          ca_amt=0.5,
          na_amt=1.0,
          steps=10000000,
          temperature=300,
          thin_by=10,
-         discard=0
+         discard=0,
+         occupath=None,
+         savepath=None
          ):
 
     ca_dmu_float = []
@@ -227,6 +234,7 @@ def main(machine,
 
     runner = gcmc_basic(machine=machine,
                         dmus=dmus,
+                        occupath=occupath,
                         savepath=savepath,
                         savename=None,
                         ce_file_path=None,
@@ -259,18 +267,21 @@ if __name__ == '__main__':
                         help="List of Ca chemical potentials.")
     parser.add_argument('--na_dmu', nargs="+", type=list, required=False, default=None,
                         help="List of Na chemical potentials.")
-    parser.add_argument('--path', type=str, required=False, default=None,
-                        help="Path want to save")
     parser.add_argument('--step', type=int, required=False, default=10000000,
                         help="Number of steps")
     parser.add_argument('--temp', type=float, required=False, default=300,
                         help="Temperature")
+    parser.add_argument('--savepath', type=str, required=False, default=None,
+                        help="Path want to save")
+    parser.add_argument('--occupath', type=str, required=False, default=None,
+                        help="Occupancy path want to load from")
     args = parser.parse_args()
     main(machine="eagle",
          ca_dmu=args.ca_dmu,
          na_dmu=args.na_dmu,
-         savepath=args.path,
          ca_amt=args.ca_amt,
          na_amt=args.na_amt,
          steps=args.step,
-         temperature=args.temp)
+         temperature=args.temp,
+         savepath=args.savepath,
+         occupath=args.occupath)
