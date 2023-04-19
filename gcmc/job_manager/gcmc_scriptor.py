@@ -16,6 +16,7 @@ import numpy as np
 from gcmc.job_manager.savio_writer import SavioWriter
 from gcmc.job_manager.lawrencium_writer import LawrenciumWriter
 from gcmc.job_manager.eagle_writer import EagleWriter
+from gcmc.job_manager.swift_writer import SwiftWriter
 from gcmc.utils import deprecated
 
 
@@ -38,7 +39,7 @@ class sgmcScriptor:
         self.temp = temp
 
         if save_path is None:
-            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/test"
+            self.save_path = "/home/yychoi/CaNaVP_gcMC/lowU300K"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -156,7 +157,7 @@ class sgmcScriptor:
                               'step': self.step,
                               'temp': self.temp,
                               'savepath': self.data_path,
-                              'occupath': "Na1"}
+                              'occupath': "/home/yychoi/CaNaVP/notebooks/300_Na1_occu.npy"}
 
             if self.machine == 'savio':
                 job_name = "cn-sgmc_" + str(count)
@@ -174,6 +175,11 @@ class sgmcScriptor:
                 job_name = 'cn-sgmc' + str(count)
                 a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
                                 "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
+                                python_options)
+            elif self.machine == 'swift':
+                job_name = 'cn-sgmc' + str(count)
+                a = SwiftWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                '/home/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py',
                                 python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
@@ -249,6 +255,11 @@ class sgmcScriptor:
                 a = EagleWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
                                 "/scratch/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py",
                                 python_options)
+            elif self.machine == 'swift':
+                job_name = str(chempo[0]) + '_' + str(chempo[1]) + '_' + str(t)
+                a = SwiftWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
+                                '/home/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py',
+                                python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
 
@@ -275,21 +286,21 @@ def main():
     test.chempo_scan(option='general')
     """
 
-    """
     # For testing purpose
-    ca_range = [-5.2]
-    na_range = [-4.0]
-    test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300.0)
+    ca_range = np.linspace(-9.0, -5.0, 41)
+    na_range = np.linspace(-4.8, -2.8, 41)
+    test = sgmcScriptor('swift', ca_range, na_range, 10000000, 300.0)
     test.chempo_scan(option='general')
-    """
 
+    """
     # For testing temp_scan method
     ca_range = [-5.2]
     na_range = [-4.0]
     temp_range = [20.0, 100.0, 120.0]
     step_range = [10000, 10000, 10000]
-    test = sgmcScriptor('eagle', ca_range, na_range, step_range, temp_range)
+    test = sgmcScriptor('swift', ca_range, na_range, step_range, temp_range)
     test.temp_scan()
+    """
 
     """
     voltage_range = np.linspace(1.5, 3.0, 100)

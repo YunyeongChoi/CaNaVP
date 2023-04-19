@@ -276,7 +276,7 @@ if __name__ == '__main__':
     parser.add_argument('--occupath', type=str, required=False, default=None,
                         help="Occupancy path want to load from")
     args = parser.parse_args()
-    main(machine="eagle",
+    main(machine="swift",
          ca_dmu=args.ca_dmu,
          na_dmu=args.na_dmu,
          ca_amt=args.ca_amt,

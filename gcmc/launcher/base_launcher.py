@@ -49,6 +49,8 @@ class gcmcabc(metaclass=ABCMeta):
                 self.savepath = '/global/scratch/users/yychoi94/CaNaVP_gcMC/data'
             elif self.machine == "eagle":
                 self.savepath = '/scratch/yychoi/CaNaVP_gcMC'
+            elif self.machine == "swift":
+                self.savepath = "/home/yychoi/CaNaVP_gcMC"
             else:
                 raise ValueError("Check machine or savepath option.")
             if not os.path.exists(self.savepath):
@@ -71,6 +73,9 @@ class gcmcabc(metaclass=ABCMeta):
             elif self.machine == 'eagle':
                 self.ce_file_path = '/scratch/yychoi/CaNaVP/data/final_data/ce' \
                                     '/0317_final_canvp_ce.mson'
+            elif self.machine == "swift":
+                self.ce_file_path = "/home/yychoi/CaNaVP/data/final_data/ce" \
+                                    "/final_canvp_ce.mson"
 
         if self.ensemble_file_path is None:
             if self.machine == 'savio' or self.machine == 'lawrencium':
@@ -79,6 +84,9 @@ class gcmcabc(metaclass=ABCMeta):
             elif self.machine == 'eagle':
                 self.ensemble_file_path = '/scratch/yychoi/CaNaVP/data/final_data/gcmc' \
                                           '/final_canvp_ensemble_0317.mson'
+            elif self.machine == 'swift':
+                self.ensemble_file_path = "/home/yychoi/CaNaVP/data/final_data/gcmc" \
+                                          "/final_canvp_ensemble_1201.mson"
 
 
         # This only fit to saved ensemble, ./data/final_data/gcmc/final_canvp_ensemble.mson
@@ -94,7 +102,6 @@ class gcmcabc(metaclass=ABCMeta):
         """
         if final_canvp_ensemble_1201
         """
-        """
         self.flip_table = np.array([[0,  -1,  0,  1,  -1,  1,  0,  0],
                                     [0,  -1,  0,  1,  0,  -1,  1,  0],
                                     [0,  0,  -1,  1,  -1,  0,  1,  0],
@@ -105,6 +112,7 @@ class gcmcabc(metaclass=ABCMeta):
                                     [0,  0,  0,  -1,  1,  -1,  0,  1],
                                     [0,  0,  -1,  0,  1,  0,  -1,  1],
                                     [0,  0,  0,  0,  0,  -2,  1,  1]])
+        """
 
 
     @property
