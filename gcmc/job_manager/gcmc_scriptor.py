@@ -39,7 +39,7 @@ class sgmcScriptor:
         self.temp = temp
 
         if save_path is None:
-            self.save_path = "/home/yychoi/CaNaVP_gcMC/lowU300K"
+            self.save_path = "/home/yychoi/CaNaVP_gcMC/lowUCaNamix"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -127,7 +127,7 @@ class sgmcScriptor:
         assert type(self.temp) == float
 
         if option == 'general':
-            chempo_list = self.splitter(6)
+            chempo_list = self.splitter(4)
         elif option == 'match':
             chempo_list = self.match_splitter(6)
         else:
@@ -210,14 +210,17 @@ class sgmcScriptor:
 
         if self.machine == 'eagle':
             saved_dir = '/scratch/yychoi/CaNaVP_gcMC/scan_300K/data'
-            saved_key = chempo[0] + '_' + chempo[1] + '_occupancy.npz'
-            saved_data = os.path.join(saved_dir, saved_key)
-            occu_data = np.load(saved_data, 'o')
-            last_occu = occu_data['o'][-1]
-            occu_save_path = os.path.join(self.save_path, chempo[0] + '_' + chempo[1] + '.npy')
-            np.save(occu_save_path, last_occu)
+        elif self.machine == 'swift':
+            saved_dir = '/home/yychoi/CaNaVP_gcMC/lowU300K/data'
         else:
             raise ValueError()
+
+        saved_key = str(chempo[0]) + '_' + str(chempo[1]) + '_occupancy.npz'
+        saved_data = os.path.join(saved_dir, saved_key)
+        occu_data = np.load(saved_data, 'o')
+        last_occu = occu_data['o'][-1]
+        occu_save_path = os.path.join(self.save_path, str(chempo[0]) + '_' + str(chempo[1]) + '.npy')
+        np.save(occu_save_path, last_occu)
 
         for ith, t in enumerate(self.temp):
 
@@ -265,7 +268,7 @@ class sgmcScriptor:
 
             a.write_script()
             os.chdir(path_directory)
-            # subprocess.call(["sbatch", "job.sh"])
+            subprocess.call(["sbatch", "job.sh"])
             print("{} launched".format(job_name))
 
         return
@@ -285,19 +288,21 @@ def main():
     test = sgmcScriptor('eagle', ca_range, na_range, 10000, 300)
     test.chempo_scan(option='general')
     """
-
-    # For testing purpose
-    ca_range = np.linspace(-9.0, -5.0, 41)
-    na_range = np.linspace(-4.8, -2.8, 41)
+    
+    
+    # For scanning chempo
+    ca_range = [-7.1]
+    na_range = np.linspace(-4.8, -2.81, 200)
     test = sgmcScriptor('swift', ca_range, na_range, 10000000, 300.0)
     test.chempo_scan(option='general')
-
+    
     """
     # For testing temp_scan method
-    ca_range = [-5.2]
-    na_range = [-4.0]
-    temp_range = [20.0, 100.0, 120.0]
-    step_range = [10000, 10000, 10000]
+    ca_range = [-5.9]
+    na_range = [-3.15]
+    temp_range = [20.0, 40.0, 60.0, 80.0, 100.0, 120.0, 140.0, 160.0, 180.0,
+                  200.0, 220.0, 240.0, 260.0, 280.0]
+    step_range = [10000000] * len(temp_range)
     test = sgmcScriptor('swift', ca_range, na_range, step_range, temp_range)
     test.temp_scan()
     """

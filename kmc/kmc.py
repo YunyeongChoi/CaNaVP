@@ -30,12 +30,12 @@ np.set_printoptions(threshold=sys.maxsize)
 sys.path.append('../')
 
 simple_barrier_key = {
-    'Na': 0.400,
-    'Ca': 0.600,
-    'Ca_Ca': 0.600,
-    'Ca_Na': 0.500,
-    'Na_Na': 0.400,
-    'Na_Ca': 0.500
+    'Na': 0.200,
+    'Ca': 0.300,
+    'Ca_Ca': 0.300,
+    'Ca_Na': 0.250,
+    'Na_Na': 0.300,
+    'Na_Ca': 0.250
 }
 
 
@@ -370,9 +370,17 @@ class kmcNasicon:
                     pass
                 else:
                     barrier = siteEdiff / 2 + barrier_key[key]
+                    """
                     if barrier > siteEdiff:
                         ediff[key][ith] = siteEdiff
                     ediff[key][ith] = barrier
+                    """
+                    barrier = siteEdiff / 2 + barrier_key[key]
+                    ediff[key][ith] = barrier
+                    if barrier < 0:
+                        ediff[key][ith] = 0.1
+                    elif barrier < siteEdiff:
+                        ediff[key][ith] = siteEdiff
         return ediff
 
     def kmcKernel(self, barrier_dict, hop_dict, t=300):
@@ -503,11 +511,11 @@ class kmcNasicon:
 
 def main(occu_data, save_path, nsteps, t):
 
-    ce_file_path = '/scratch/yychoi/CaNaVP/data/final_data/ce' \
+    ce_file_path = '/home/yychoi/CaNaVP/data/final_data/ce' \
                    '/final_canvp_ce.mson'
-    ensemble_file_path = '/scratch/yychoi/CaNaVP/data/final_data/gcmc' \
+    ensemble_file_path = '/home/yychoi/CaNaVP/data/final_data/gcmc' \
                          '/final_canvp_ensemble_1201.mson'
-    nnmatrix_path = '/scratch/yychoi/CaNaVP/data/final_data/gcmc/NNmatrix_1201.npy'
+    nnmatrix_path = '/home/yychoi/CaNaVP/data/final_data/gcmc/NNmatrix_1201.npy'
 
     for ith, j in enumerate(occu_data):
 

@@ -38,14 +38,14 @@ class kmcScriptor:
         self.temp = temp
 
         if occu_dir is None:
-            self.occu_dir = "/scratch/yychoi/CaNaVP_gcMC/rough_scan_300K"
+            self.occu_dir = "/home/yychoi/CaNaVP_gcMC/lowU300K"
         else:
             self.occu_dir = occu_dir
         if not os.path.exists(self.occu_dir):
             raise FileNotFoundError("Occupancy directory is not exists.")
 
         if save_path is None:
-            self.save_path = "/scratch/yychoi/CaNaVP_gcMC/kmc_test"
+            self.save_path = "/home/yychoi/CaNaVP_gcMC/lowUkmc_lb"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -119,22 +119,22 @@ class kmcScriptor:
             elif self.machine == 'swift':
                 job_name = 'kmc' + str(count)
                 a = SwiftWriter("python", os.path.join(path_directory, 'job.sh'), job_name,
-                                '/home/yychoi/CaNaVP/gcmc/launcher/basic_launcher.py',
+                                '/home/yychoi/CaNaVP/kmc/kmc.py',
                                 python_options)
             else:
                 raise ValueError('Need to specify machine correctly')
 
             a.write_script()
             os.chdir(path_directory)
-            # subprocess.call(["sbatch", "job.sh"])
-            # print("{} launched".format(job_name))
+            subprocess.call(["sbatch", "job.sh"])
+            print("{} launched".format(job_name))
 
         return
 
 
 def main():
 
-    a = kmcScriptor("eagle", 10000, 300)
+    a = kmcScriptor("swift", 10000, 300)
     a.basic_run()
 
 
