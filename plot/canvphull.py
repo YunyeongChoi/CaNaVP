@@ -19,7 +19,8 @@ from plot.plot_utils import *
 
 FIG_DIR = os.getcwd()
 DATA_DIR = FIG_DIR.replace('plot', 'data')
-vasp_data = read_json(os.path.join(DATA_DIR, 'final_data', 'dft', '031623_ce_data.json'))
+# vasp_data = read_json(os.path.join(DATA_DIR, 'final_data', 'dft', '031623_ce_data.json'))
+vasp_data = read_json(os.path.join(DATA_DIR, 'final_data', 'ce', '1003_dft_fitting.json'))
 
 # For further use. Currently not MP compatible.
 # MP_DIR = os.path.join(DATA_DIR, '0414_MP.json')
@@ -113,12 +114,12 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
         for config in exp_stable_list:
             pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
             pt = triangle_to_square(pt)
-            plt.scatter(pt[0], pt[1], marker='*', s=64, color='blue', zorder=5,
+            plt.scatter(pt[0], pt[1], marker='*', s=144, color='blue', zorder=5,
                              edgecolors='black', linewidths=1)
         for config in exp_unstable_list:
             pt = [config[0] / 1.5, config[1] / 3, 1 - config[0] / 1.5 - config[0] / 3]
             pt = triangle_to_square(pt)
-            plt.scatter(pt[0], pt[1], marker='*', s=64, color='red', zorder=5,
+            plt.scatter(pt[0], pt[1], marker='*', s=144, color='red', zorder=5,
                              edgecolors='black', linewidths=1)
 
     # Plotting gcMC trajectories.
@@ -142,7 +143,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
             Ca_chempo = round(float(chempo.split('_')[0]), 2)
             Na_chempo = round(float(chempo.split('_')[1]), 2)
             chempo_str = str(Ca_chempo) + ', ' + str(Na_chempo)
-            plt.annotate(chempo_str, (traj_dict[chempo][0], traj_dict[chempo][1]), size=15)
+            plt.annotate(chempo_str, (traj_dict[chempo][0], traj_dict[chempo][1]), size=6)
 
     # Plotting ground states.
     cmpd_params = params()
@@ -160,7 +161,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
                     facecolor='white',
                     edgecolor=color,
                     alpha=alpha,
-                    s=64,
+                    s=144,
                     zorder=4)
 
 
@@ -216,7 +217,7 @@ def ternary_pd(hull_data, line_data, exp=True, traj=True, traj_avg=True):
     cb.ax.tick_params(labelsize=tick_size, length=tick_len, width=tick_width)
 
     # plt.show()
-    fig.savefig("/Users/yun/Berkeley/Codes/CaNaVP/test/gcmc_0320_600K.png")
+    fig.savefig("/Users/yun/Berkeley/Codes/CaNaVP/test/old_L2_fitting.png")
 
     return
 
@@ -244,5 +245,4 @@ if __name__ == '__main__':
     tc = ternary_chempo(polished_line_data, vasp_data)
     chempo_data = tc.get_chempo_at_cycles()
     # print(chempo_data)
-    ternary_pd(hull_data, line_data, traj=False)
-
+    ternary_pd(hull_data, line_data, traj=False, traj_avg=False)

@@ -199,7 +199,7 @@ def get_reduced_traj(to_triangle=True):
 
 def new_get_traj():
 
-    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/energy_concen.json'
+    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/traj_data_600K.json'
     traj_data = read_json(traj_data_path)
 
     translated_traj_in_tri = {}
@@ -213,7 +213,7 @@ def new_get_traj():
 
 def from_energy_concen():
 
-    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/600K_gcmc_old_test/energy_con_600K_0322.json'
+    traj_data_path = '/Users/yun/Berkeley/Codes/CaNaVP/test/600K_gcmc_old_test/0322_energy_concen_lowU300.json'
     traj_data = read_json(traj_data_path)
 
     translated_traj_in_tri = {}

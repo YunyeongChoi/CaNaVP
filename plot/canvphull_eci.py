@@ -16,8 +16,8 @@ from compmatscipy.HullAnalysis import AnalyzeHull, GetHullInputData
 from plot.plot_utils import *
 
 DATA_DIR = ''
-eci_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/final_data/ce/1003_eci_gp'
-wrangler_path = '/Users/yun/Desktop/github_codes/CaNaVP/data/final_data/ce/0927_wrangler.json'
+eci_path = '/Users/yun/Berkeley/Codes/CaNaVP/data/final_data/ce/1003_eci_gp'
+wrangler_path = '/Users/yun/Berkeley/Codes/CaNaVP/data/final_data/ce/0927_wrangler.json'
 
 # Correction values are based on MP2020Compatibility.yaml (+U setting)
 # https://github.com/materialsproject/pymatgen/blob/master/pymatgen/entries/MP2020Compatibility.yaml
