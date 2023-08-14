@@ -39,7 +39,7 @@ class sgmcScriptor:
         self.temp = temp
 
         if save_path is None:
-            self.save_path = "/home/yychoi/CaNaVP_gcMC/lowUCaNamix"
+            self.save_path = "/home/yychoi/CaNaVP_detect/na3640ca8266"
         else:
             self.save_path = save_path
         if not os.path.exists(self.save_path):
@@ -289,10 +289,19 @@ def main():
     test.chempo_scan(option='general')
     """
     
-    
+    """
     # For scanning chempo
     ca_range = [-7.1]
     na_range = np.linspace(-4.8, -2.81, 200)
+    test = sgmcScriptor('swift', ca_range, na_range, 10000000, 300.0)
+    test.chempo_scan(option='general')
+    """
+
+    # For detailed scan of phase transition
+    # ca_range = np.linspace(-8.2, -5.8, 1201)
+    # na_range = [-3.6]
+    ca_range = np.linspace(-8.2, -6.6, 81)
+    na_range = np.linspace(-4.0, -3.6, 81)
     test = sgmcScriptor('swift', ca_range, na_range, 10000000, 300.0)
     test.chempo_scan(option='general')
     
@@ -324,4 +333,3 @@ def main():
 if __name__ == '__main__':
 
     main()
-

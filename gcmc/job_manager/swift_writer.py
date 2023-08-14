@@ -26,7 +26,9 @@ class SwiftWriter(ScriptWriter):
             self.options.pop('cpus-per-task', None)
         self.partition = 'parallel'
         self._continuous_option = True
-        self.options = {"account": self.account, "qos": self._qos, 
+        # self.options = {"account": self.account, "qos": self._qos, 
+        #                "partition": self.partition}
+        self.options = {"account": self.account,
                         "partition": self.partition}
         if self.calculation_type == 'python':
             self.python_script_name = python_script_name
